@@ -1,0 +1,9 @@
+%{
+	(*Header stuff, ocaml declarations*)
+%}
+
+	(*ocamlyacc declarations*)
+%%
+	(*Grammar rules*)
+%%
+	(*Footer stuff, ocaml code*)
