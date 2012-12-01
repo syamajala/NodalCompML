@@ -8,11 +8,12 @@
 	%right ASSIGN
 	%token LBRACK RBRACK LPAREN RPAREN LBRACE RBRACE
 	%token <string> ID
+	%token <int> INTEGER
 
 	%token INTERFACE
 	%token NODE
 	%token FUN
-	%token INTEGER
+	%token INT
 	%token CHAR
 	%token FLOAT
 	%token DOUBLE
@@ -59,7 +60,7 @@
 	%right NOT
 	%left AND
 	%left OR
-	%left PERIOD
+	/*%left PERIOD*/
 	%token QUOTE
 	%token DQUOTE
 	
@@ -73,6 +74,7 @@
 program:	/*empty*/ { [], [] }
 	| program var_decl { ($2 :: fst $1), snd $1 }
 	| program fun_decl { fst $1, ($2 :: snd $1) }
+
 
 fun_decl: /* TODO: break up the stuff inside braces to fun_body */
 	ID LPAREN arg_decl_list_opt RPAREN LBRACE var_decl_list compound_statement RBRACE
@@ -94,29 +96,51 @@ var_decl_list:
 	| var_decl_list var_decl  { $2 :: $1 }
 
 var_decl:
-	/*type_specifier*/ ID SEMI	  { print_string "declaring variable: "; print_string $1; flush stdout; $1 }
+	type_specifier ID SEMI	  { print_string "declaring variable: "; print_string $2; flush stdout; $2 }
 
 compound_statement:
 	/*nothing*/		  { [] }
 	| compound_statement statement { $2 :: $1 }
 
 statement:
-	expr SEMI		  { Expr($1) }
+	LBRACE compound_statement RBRACE  { Block($2) }
+	| expr SEMI		  { Expr($1) }
 
 expr:
 	ID			  { Id($1) }
+	| INTEGER		  { Literal($1) }
+	| expr PLUS expr	  { Binop($1, Add, $3) }
+	| expr MINUS expr	  { Binop($1, Sub, $3) }
+	| expr TIMES expr	  { Binop($1, Mult, $3) }
+	| expr DIVIDE expr	  { Binop($1, Div, $3) }
+	| expr MOD expr	  	  { Binop($1, Mod, $3) }
+	| ID PLUSEQ 
 
-/*
+	%left PLUS
+	%left MINUS
+	%left TIMES
+	%left DIVIDE
+	%left MOD
+	%right PLUSEQ
+	%right MINUSEQ
+	%right TIMESEQ
+	%right DIVEQ
+	%left EQ
+	%left NEQ
+	%left LT
+	%left GT
+	%left LEQ
+	%left GEQ
+	%right NOT
+	%left AND
+	%left OR
+
+
 type_specifier:
-	CHAR			  { $1 }
-	| INTEGER		  { int($1) }
-	| FLOAT			  { $1 }
-	| DOUBLE		  { $1 }
-	| STRING		  { $1 }
-	| BOOL			  { $1 }
-	| VOID			  { $1 }
-*/
-
-
-
-
+	CHAR			  { }
+	| INT		  	  { }
+	| FLOAT			  { }
+	| DOUBLE		  { }
+	| STRING		  { }
+	| BOOL			  { }
+	| VOID			  { }

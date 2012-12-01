@@ -15,14 +15,14 @@ rule token = parse
 	| "//" { comment lexbuf }
 	| identifier as lit {ID(lit)}
 	| "node" {NODE}
-	| "int" {INTEGER}	(* types and literals *)
+	| "int" {INT}	(* types and literals *)
 	| "char" {CHAR}
-	| "float" {FLOAT}
+	| "float" {FLOAT}xo
 	| "double" {DOUBLE}
 	| "string" {STRING}
 	| "bool" {BOOL}
 	| "void" {VOID}
-	| digit+ as lit {LCONST(int_of_string lit)}
+	| digit+ as lit {INTEGER(int_of_string lit)}
 	| (digit*'.'digit+) | (digit+'.'digit*) as lit {DCONST(float_of_string lit)}
 	| '''(letter | digit | symbol)''' as lit {CCONST(lit.[1])} (* not sure*)
 	| '"'(letter | digit | symbol)*'"' as lit {SCONST(lit)} (* not sure *)
