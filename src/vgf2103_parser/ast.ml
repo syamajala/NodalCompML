@@ -1,9 +1,10 @@
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater
+type op = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Leq | Gt | Geq | Not | And | Or
 
 type expr = 
     Literal of int
   | Id of string
   | Binop of expr * op * expr
+  | Unop of op * expr
   | Assign of string * expr
   | Call of string * expr list
   | Noexpr

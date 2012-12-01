@@ -17,8 +17,7 @@ rule token = parse
 	| "node" {NODE}
 	| "int" {INT}	(* types and literals *)
 	| "char" {CHAR}
-	| "float" {FLOAT}xo
-	| "double" {DOUBLE}
+	| "float" {FLOAT}
 	| "string" {STRING}
 	| "bool" {BOOL}
 	| "void" {VOID}

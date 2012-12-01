@@ -60,7 +60,7 @@
 	%right NOT
 	%left AND
 	%left OR
-	/*%left PERIOD*/
+	%token PERIOD
 	%token QUOTE
 	%token DQUOTE
 	
@@ -114,26 +114,16 @@ expr:
 	| expr TIMES expr	  { Binop($1, Mult, $3) }
 	| expr DIVIDE expr	  { Binop($1, Div, $3) }
 	| expr MOD expr	  	  { Binop($1, Mod, $3) }
-	| ID PLUSEQ 
-
-	%left PLUS
-	%left MINUS
-	%left TIMES
-	%left DIVIDE
-	%left MOD
-	%right PLUSEQ
-	%right MINUSEQ
-	%right TIMESEQ
-	%right DIVEQ
-	%left EQ
-	%left NEQ
-	%left LT
-	%left GT
-	%left LEQ
-	%left GEQ
-	%right NOT
-	%left AND
-	%left OR
+/*	| ID PLUSEQ expr	  { Binop($1, Pluseq, $3) } */
+	| expr EQ expr		  { Binop($1, Eq, $3) }
+	| expr NEQ expr		  { Binop($1, Neq, $3) }
+	| expr LT expr		  { Binop($1, Lt, $3) }
+	| expr GT expr		  { Binop($1, Gt, $3) }
+	| expr LEQ expr		  { Binop($1, Leq, $3) }
+	| expr GEQ expr		  { Binop($1, Geq, $3) }
+	| expr AND expr		  { Binop($1, And, $3) }
+	| expr OR expr		  { Binop($1, Or, $3) }
+	| NOT expr 		  { Unop(Not, $2) }
 
 
 type_specifier:
