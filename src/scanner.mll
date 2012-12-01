@@ -36,6 +36,7 @@ rule token = parse
 	| "if" {IF}
 	| "interface" {INTERFACE}
 	| "return" {RETURN}
+	| "to"	{TO}
 	| "while" {WHILE}
 	| '(' {LPAREN}	| ')' {RPAREN} 	(*  operators *)
 	| '{' {LBRACE}	| '}' {RBRACE}
@@ -55,7 +56,7 @@ rule token = parse
 	| ';' {SEMI}
 	| ''' {QUOTE} 	| '"' {DQUOTE}
 	| _ as char {raise (Failure("illegal character: " 
-					^ Char.escpared char))}
+					^ Char.escaped char))}
 	| eof {EOF}
 
 	and comment = parse

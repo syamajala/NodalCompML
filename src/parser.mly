@@ -35,12 +35,22 @@
 	%token BREAK
 	%token CONTINUE
 	%token ELSE
+	%token NOELSE	
 	%token FOR
 	%token IF
 	%token RETURN
 	%token WHILE
 
+	%token PLUS MINUS TIMES DIVIDE MOD
+	%token PLUSEQ MINUSEQ TIMESEQ DIVEQ
+	%token ASSIGN
+	%token EQ NEQ LT GT LEQ GEQ
+	%token AND OR NOT
+	%token PERIOD COMMA SEMI
+	%token QUOTE DQUOTE
+
 	%token FORWARD
+	%token TO
 
 	%left PLUS
 	%left MINUS
@@ -71,17 +81,34 @@
 	%type <Ast.program> program
 %%
 
-program:	/*empty*/ { [], [] }
-	| program var_decl { ($2 :: fst $1), snd $1 }
-	| program fun_decl { fst $1, ($2 :: snd $1) }
+program: 
+	| /* empty */	{ [] }
+	| program node	{ $2 :: $1 }
 
+node:
+	NODE ID LPAREN arg_decl_list_opt RPAREN 
+		LBRACE  var_decl_list
+			compound_statement
+			fun_decl_list	RBRACE 
+	{ { nname 	= $2;
+	    args 	= $4;
+	    local_vars 	= List.rev $7;
+   	    compute 	= List.rev $8;
+	    functions 	= List.rev $9 } }
+
+fun_decl_list :
+	| /* empty */			{ [] }
+	| fun_decl_list fun_decl	{ $2 :: $1 }
 
 fun_decl: /* TODO: break up the stuff inside braces to fun_body */
-	ID LPAREN arg_decl_list_opt RPAREN LBRACE var_decl_list compound_statement RBRACE
-	   { { fname		    = $1;
-	       formals		    = $3;
-	       locals		    = List.rev $6;
-	       body		    = List.rev $7 } }
+	FUN type_specifier ID LPAREN arg_decl_list_opt RPAREN 
+	   LBRACE var_decl_list 
+		  compound_statement RBRACE
+	{ { return_type = $2;
+	    fname	= $3;
+	    formals	= $5;
+	    locals	= List.rev $8;
+	    body	= List.rev $9 } }
 
 arg_decl_list_opt:	
 	/*empty*/		  { [] }
@@ -100,14 +127,22 @@ var_decl:
 
 compound_statement:
 	/*nothing*/		  { [] }
-	| compound_statement statement { $2 :: $1 }
+	| compound_statement stmt { $2 :: $1 }
 
-statement:
+stmt:
 	LBRACE compound_statement RBRACE  { Block($2) }
-	| expr SEMI		  { Expr($1) }
+	| expr SEMI		  		{ Expr($1) }
+	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Nostmt) }
+	| IF LPAREN expr RPAREN stmt ELSE  stmt   { If($3, $5, $7) }
+	| WHILE LPAREN expr RPAREN stmt		{ While($3, $5) }
+	| FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt{ For($3, $5, $7, $9) }	| BREAK SEMI	{ Break } 
+	| CONTINUE SEMI	{ Continue }
+	| RETURN expr SEMI	{ Return($2) }
+	| RETURN SEMI		{ Return(Noexpr) }
+	/*FORWARD */
 
 expr:
-	ID			  { Id($1) }
+	| ID			  { Id($1) }
 	| INTEGER		  { Literal($1) }
 	| expr PLUS expr	  { Binop($1, Add, $3) }
 	| expr MINUS expr	  { Binop($1, Sub, $3) }
@@ -127,7 +162,7 @@ expr:
 
 
 type_specifier:
-	CHAR			  { }
+	| CHAR			  { }
 	| INT		  	  { }
 	| FLOAT			  { }
 	| DOUBLE		  { }
