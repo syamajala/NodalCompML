@@ -1,0 +1,13 @@
+/* Bug noticed by Pin-Chin Huang */
+node main() {
+  int fun func(x, y) {
+      return 0;
+  }
+
+  int i;
+  i = 1;
+
+  func(i = 2, i = i+1);
+  print i;
+}
+
