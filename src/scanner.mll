@@ -1,4 +1,7 @@
-{ open Parser }
+{ 
+  open Parser 
+  exception Eof
+}
 
 let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
@@ -21,12 +24,12 @@ rule token = parse
 	| "string" {STRING}
 	| "bool" {BOOL}
 	| "void" {VOID}
-	| digit+ as lit {INTEGER(int_of_string lit)}
+	| digit+ as lit {LCONST(int_of_string lit)}
 	| (digit*'.'digit+) | (digit+'.'digit*) as lit {DCONST(float_of_string lit)}
 	| '''(letter | digit | symbol)''' as lit {CCONST(lit.[1])} (* not sure*)
 	| '"'(letter | digit | symbol)*'"' as lit {SCONST(lit)} (* not sure *)
 	| bool_value as lit {BCONST(bool_of_string lit)}
-	| "null" {NULL} (* we may want this *)
+	(*| "null" {NULL} (* we may want this *) *)
 	| "break" {BREAK}	(* keywords *)
 	| "continue" {CONTINUE}
 	| "else" {ELSE}
@@ -57,7 +60,7 @@ rule token = parse
 	| ''' {QUOTE} 	| '"' {DQUOTE}
 	| _ as char {raise (Failure("illegal character: " 
 					^ Char.escaped char))}
-	| eof {EOF}
+	| eof { raise Eof }
 
 	and comment = parse
 	  "\r\n" | '\n' { token lexbuf }

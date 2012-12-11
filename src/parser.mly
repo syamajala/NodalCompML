@@ -8,7 +8,6 @@
 	%right ASSIGN
 	%token LBRACK RBRACK LPAREN RPAREN LBRACE RBRACE
 	%token <string> ID
-	%token <int> INTEGER
 
 	%token INTERFACE
 	%token NODE
@@ -16,21 +15,19 @@
 	%token INT
 	%token CHAR
 	%token FLOAT
-	%token DOUBLE
+	%token DOUBLE /* should handle this differently, or remove doubles */
 	%token STRING
 	%token BOOL
-	%token VOID
+	%token VOID /* an indicator, can't actually have a void "thing" */
 
 	%nonassoc ARRAY
 
-	/*not sure about these*/
+	/*TODO: rename LCONST --> ICONST, DCONST --> FCONST*/
 	%token <int> LCONST
 	%token <float> DCONST
 	%token <char> CCONST
 	%token <string> SCONST
 	%token <bool> BCONST
-	
-	%token NULL
 	
 	%token BREAK
 	%token CONTINUE
@@ -52,28 +49,6 @@
 	%token FORWARD
 	%token TO
 
-	%left PLUS
-	%left MINUS
-	%left TIMES
-	%left DIVIDE
-	%left MOD
-	%left PLUSEQ
-	%left MINUSEQ
-	%left TIMESEQ
-	%left DIVEQ
-	%left EQ
-	%left NEQ
-	%left LT
-	%left GT
-	%left LEQ
-	%left GEQ
-	%right NOT
-	%left AND
-	%left OR
-	%token PERIOD
-	%token QUOTE
-	%token DQUOTE
-	
 	%token NEWLINE
 	%token EOF
 
@@ -101,10 +76,10 @@ fun_decl_list :
 	| fun_decl_list fun_decl	{ $2 :: $1 }
 
 fun_decl: /* TODO: break up the stuff inside braces to fun_body */
-	FUN type_specifier ID LPAREN arg_decl_list_opt RPAREN 
+	dtype FUN ID LPAREN arg_decl_list_opt RPAREN 
 	   LBRACE var_decl_list 
 		  compound_statement RBRACE
-	{ { return_type = $2;
+	{ { return_type = $1;
 	    fname	= $3;
 	    formals	= $5;
 	    locals	= List.rev $8;
@@ -123,7 +98,7 @@ var_decl_list:
 	| var_decl_list var_decl  { $2 :: $1 }
 
 var_decl:
-	type_specifier ID SEMI	  { print_string "declaring variable: "; print_string $2; flush stdout; $2 }
+	dtype ID ASSIGN expr SEMI	  { print_string "declaring variable: "; print_string $2; flush stdout; $2 }
 
 compound_statement:
 	/*nothing*/		  { [] }
@@ -143,7 +118,10 @@ stmt:
 
 expr:
 	| ID			  { Id($1) }
-	| INTEGER		  { Literal($1) }
+	| CCONST		  { CharLiteral($1) }
+	| LCONST		  { IntLiteral($1) }
+	| DCONST		  { FloatLiteral($1) }
+	| BCONST		  { BoolLiteral($1) }
 	| expr PLUS expr	  { Binop($1, Add, $3) }
 	| expr MINUS expr	  { Binop($1, Sub, $3) }
 	| expr TIMES expr	  { Binop($1, Mult, $3) }
@@ -160,12 +138,11 @@ expr:
 	| expr OR expr		  { Binop($1, Or, $3) }
 	| NOT expr 		  { Unop(Not, $2) }
 
+dtype:
+	  CHAR	 { CharType }
+	| STRING { StringType }
+	| INT	 { IntType }
+	| FLOAT  { FloatType }
+	| BOOL   { BoolType }
+	| VOID   { VoidType }
 
-type_specifier:
-	| CHAR			  { }
-	| INT		  	  { }
-	| FLOAT			  { }
-	| DOUBLE		  { }
-	| STRING		  { }
-	| BOOL			  { }
-	| VOID			  { }

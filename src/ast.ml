@@ -1,13 +1,23 @@
-type op = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Leq | Gt | Geq | Not | And | Or
+type binop = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Leq | Gt | Geq | And | Or
+type unop = Not | Neg | Inc
+
+type dtype = CharType | StringType | IntType | FloatType | BoolType | VoidType
+
+type formal = Formal of dtype * string
 
 type expr = 
-    Literal of int
-  | Id of string
-  | Binop of expr * op * expr
-  | Unop of op * expr
+    Id of string
+  | CharLiteral of char
+  | IntLiteral of int
+  | FloatLiteral of float
+  | BoolLiteral of bool
+  | Binop of expr * binop * expr
+  | Unop of unop * expr
   | Assign of string * expr
   | Call of string * expr list
   | Noexpr
+
+type var_decl  = VarDecl of dtype * string * expr
 
 type stmt = 
     Block of stmt list
@@ -21,13 +31,14 @@ type stmt =
   | Nostmt
 
 type fun_decl = {
-  return_type : unit;
+  return_type : dtype;
   fname : string;
   formals : string list; 
   locals : string list;
   body : stmt list;
 }
 
+(*TODO: rename this to node_decl and change the args/local_vals stuff *)
 type node = {
 	nname : string;
 	args : string list;
@@ -38,16 +49,27 @@ type node = {
 
 type program = node list
 
+
+
+
 let rec string_of_expr = function
-  | Literal(l) -> "Num(" ^ string_of_int(l) ^ ")"
+    CharLiteral(l) -> "Char(" ^ Char.escaped(l) ^ ")"
+  | IntLiteral(l) -> "Int(" ^ string_of_int(l) ^ ")"
+  | FloatLiteral(l) -> "Float(" ^ string_of_float(l) ^ ")"
+  | BoolLiteral(l) -> "Bool(" ^ string_of_bool(l) ^ ")"
   | Id(s) -> "Name('" ^ s ^ "', Load())"
-  | Binop(e1, o, e2) ->
+  | Binop(e1, o, e2) -> (*TODO: why do we have the "()"?? can probably get rid of them*)
       "BinOp(" ^ string_of_expr e1 ^ ", " ^
       (match o with
         Add -> "Add()" | Sub -> "Sub()" | Mult -> "Mult()" | Div -> "Div()" | Mod -> "Mod()"
       | Eq -> "Eq()" | Neq -> "NotEq()"
-      | Lt -> "Lt()" | Leq -> "LtE()" | Gt -> "Gt()" | Geq -> "GtE()") ^ ", " ^ 
+      | Lt -> "Lt()" | Leq -> "LtE()" | Gt -> "Gt()" | Geq -> "GtE()"
+      | Or -> "Or()" | And -> "And()" ) ^ ", " ^ 
       string_of_expr e2 ^ ")"
+  | Unop(o, e1) ->
+      "UnOp(" ^
+      (match o with
+        Not -> "Not" | Inc -> "Inc" | Neg -> "Neg") ^ ", " ^ string_of_expr e1 ^ ")"
   | Assign(v, e) -> "[Name('" ^ v ^ "), Store())]" ^  string_of_expr e
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
@@ -65,6 +87,9 @@ let rec string_of_stmt = function
       "For(" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
       string_of_expr e3  ^ ") " ^ string_of_stmt s
   | While(e, s) -> "While(" ^ string_of_expr e ^ ") " ^ string_of_stmt s
+  | Break -> "Break;"
+  | Continue -> "Continue;"
+  | Nostmt -> ""
 
 let string_of_vdecl id = "int " ^ id ^ ";\n"
 
