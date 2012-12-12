@@ -1,10 +1,13 @@
+
+
 (* file: main.ml *)
 let main () =
   try
     let lexbuf = Lexing.from_channel stdin in
     while true do
-      Parser.program Lexer.token lexbuf
+      let result = (* Parser.program *) Parser.program Scanner.token lexbuf in
+        print_newline(); flush stdout (* should write function to pretty print the generated ast *)
     done
-  with End_of_file -> exit 0
+  with Scanner.Eof -> exit 0
       
 let _ = Printexc.print main ()
