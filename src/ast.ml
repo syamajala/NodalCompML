@@ -7,7 +7,7 @@ type formal = Formal of dtype * string
 
 type expr = 
   Id of string
-  | CharLiteral of string
+  | CharLiteral of char
   | IntLiteral of int
   | FloatLiteral of float
   | BoolLiteral of bool
@@ -112,10 +112,10 @@ let string_of_fdecl fdecl =
 (*    String.concat "" (List.map string_of_vdecl fdecl.locals) *)
      ^ String.concat "" (List.map string_of_stmt fdecl.body) ^ "], [])]"
 
-let string_of_program nodes =
-  "Module([" ^ (String.concat ", " (List.map string_of_node nodes)) ^ "])"
-
 let string_of_node ndecl = 
   "ClassDef('" ^ ndecl.nname ^ "', [], " ^ "[" ^ String.concat ", " (List.map string_of_fdecl ndecl.functions) ^ "], [])"
+
+let string_of_program nodes =
+  "Module([" ^ (String.concat ", " (List.map string_of_node nodes)) ^ "])"
 
 let n = [{ nname="hi"; args=[]; local_vars=[]; compute=[Print(IntLiteral(1))]; functions=[]}]
