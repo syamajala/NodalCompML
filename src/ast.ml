@@ -8,6 +8,7 @@ type formal = Formal of dtype * string
 type expr = 
     Id of string
   | CharLiteral of char
+  | StringLiteral of string
   | IntLiteral of int
   | FloatLiteral of float
   | BoolLiteral of bool
@@ -17,7 +18,7 @@ type expr =
   | Call of string * expr list
   | Noexpr
 
-type var_decl  = VarDecl of dtype * string * expr
+type var_decl = VarDecl of dtype * string * expr
 
 type stmt = 
     Block of stmt list
@@ -47,13 +48,15 @@ type node = {
 	functions : fun_decl list;
 }
 
-type program = node list
+(*type program = node list*)
+type program = var_decl list
 
 
 
 
 let rec string_of_expr = function
     CharLiteral(l) -> "Char(" ^ Char.escaped(l) ^ ")"
+  | StringLiteral(l) -> "String(" ^ l ^ ")"
   | IntLiteral(l) -> "Int(" ^ string_of_int(l) ^ ")"
   | FloatLiteral(l) -> "Float(" ^ string_of_float(l) ^ ")"
   | BoolLiteral(l) -> "Bool(" ^ string_of_bool(l) ^ ")"

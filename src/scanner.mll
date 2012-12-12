@@ -6,17 +6,15 @@
 let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
 let symbol = ['`' '~' '!' '@' '#' '$' '%' '^' '&' '*' '(' ')' '-' '_' '=' '+' '{' '}' '[' ']' '|' ':' ';' ''' '"' '<' '>' ',' '.' '?' '/']
-let escape_characters = "\\" | "\\\\" | "\n" | "\t"  (* not sure *)
+(*let escape_characters = "\\" | "\\\\" | "\n" | "\t"  (* not sure *) *)
 let whitespace = [' ' '\t']
-let newline = "\r\n" | '\n'
-let identifier = letter (letter | digit)*
+let newline = "\r\n" | "\n"
+let identifier = ('_' | letter) ('_' | letter | digit)*
 let bool_value = "true" | "false"
 
 rule token = parse
-	 (*whitespace { token lexbuf }*) (* lets use as interpreter for now *)
-	  '\n' { NEWLINE }
+	 whitespace+ { token lexbuf }
 	| "//" { comment lexbuf }
-	| identifier as lit {ID(lit)}
 	| "node" {NODE}
 	| "int" {INT}	(* types and literals *)
 	| "char" {CHAR}
@@ -26,8 +24,8 @@ rule token = parse
 	| "void" {VOID}
 	| digit+ as lit {LCONST(int_of_string lit)}
 	| (digit*'.'digit+) | (digit+'.'digit*) as lit {DCONST(float_of_string lit)}
-	| '''(letter | digit | symbol)''' as lit {CCONST(lit.[1])} (* not sure*)
-	| '"'(letter | digit | symbol)*'"' as lit {SCONST(lit)} (* not sure *)
+	| "\'"(letter | digit | symbol)"\'" as lit {(print_endline "hit single quotes\n"); flush stdout; CCONST(lit.[1])} (* not sure*)
+	| "\""(letter | digit | symbol)*"\"" as lit {(print_endline "hit double quotes\n"); flush stdout;SCONST(lit)} (* not sure *)
 	| bool_value as lit {BCONST(bool_of_string lit)}
 	(*| "null" {NULL} (* we may want this *) *)
 	| "break" {BREAK}	(* keywords *)
@@ -57,10 +55,12 @@ rule token = parse
 	| "&&" {AND}	| "||" {OR}
 	| '.' {PERIOD}	| ',' {COMMA}
 	| ';' {SEMI}
-	| ''' {QUOTE} 	| '"' {DQUOTE}
+	| "\'" {QUOTE} 	| "\"" {DQUOTE}
+	| identifier as lit {ID(lit)}
+        |  newline { NEWLINE }
+	| eof { raise Eof }
 	| _ as char {raise (Failure("illegal character: " 
 					^ Char.escaped char))}
-	| eof { raise Eof }
 
 	and comment = parse
 	  "\r\n" | '\n' { token lexbuf }
