@@ -1,10 +1,12 @@
-type op = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Leq | Gt | Geq | Not | And | Or
+type binop = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Leq | Gt | Geq | And | Or
+
+type unop = Not | Neg | Inc
 
 type expr = 
     Literal of int
   | Id of string
-  | Binop of expr * op * expr
-  | Unop of op * expr
+  | Binop of expr * binop * expr
+  | Unop of unop * expr
   | Assign of string * expr
   | Call of string * expr list
   | Noexpr
@@ -19,6 +21,12 @@ type stmt =
   | Continue
   | Break
   | Nostmt
+
+type compare = {
+  left : expr;
+  cmpop : binop;
+  right : expr;
+}
 
 type fun_decl = {
   return_type : unit;
@@ -46,34 +54,50 @@ let rec string_of_expr = function
       (match o with
         Add -> "Add()" | Sub -> "Sub()" | Mult -> "Mult()" | Div -> "Div()" | Mod -> "Mod()"
       | Eq -> "Eq()" | Neq -> "NotEq()"
-      | Lt -> "Lt()" | Leq -> "LtE()" | Gt -> "Gt()" | Geq -> "GtE()") ^ ", " ^ 
+      | Lt -> "Lt()" | Leq -> "LtE()" | Gt -> "Gt()" | Geq -> "GtE()"
+      | Or -> "Or()" | And -> "And()") ^ ", " ^ 
       string_of_expr e2 ^ ")"
-  | Assign(v, e) -> "[Name('" ^ v ^ "), Store())]" ^  string_of_expr e
+  | Unop(o, e1) ->
+    "UnaryOp(" ^
+      (match o with
+        Not -> "Invert()")  ^ string_of_expr e1
+  | Assign(v, e) -> "Assign([Name('" ^ v ^ "), Store()], " ^  string_of_expr e ^ ")"
   | Call(f, el) ->
-      f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+    "Call(" ^ string_of_expr(Id(f)) ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
+
+let rec string_of_compare compare = 
+  "Compare(" ^ string_of_expr compare.left ^ ", [" ^ 
+    (match compare.cmpop with 
+      Eq -> "Eq()" | Neq -> "NotEq()" | Lt -> "Lt()" | Leq -> "LtE()" | Gt -> "Gt()" | Geq -> "GtE()")
+      ^  "], [" ^ string_of_expr compare.right ^ "])"
+
+let build_compare = function
+  | Binop(e1, o, e2) -> { left=e1; cmpop=o; right = e2 }
 
 let rec string_of_stmt = function
     Block(stmts) ->
-      "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
-  | Expr(expr) -> string_of_expr expr ^ ";\n";
+       String.concat "" (List.map string_of_stmt stmts)
+  | Expr(expr) -> string_of_expr expr;
   | Return(expr) -> "Return(" ^ string_of_expr expr ^ ")"
-  | If(e, s, Block([])) -> "If(" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s
-  | If(e, s1, s2) ->  "If(" ^ string_of_expr e ^ "," ^ "[" ^
-      string_of_stmt s1 ^ "], " ^ ",[" ^ string_of_stmt s2 ^ "])"
-  | For(e1, e2, e3, s) ->
-      "For(" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
-      string_of_expr e3  ^ ") " ^ string_of_stmt s
-  | While(e, s) -> "While(" ^ string_of_expr e ^ ") " ^ string_of_stmt s
+  | If(e, s, Block([])) -> "If(" ^ string_of_compare (build_compare e) ^ ", [" ^ string_of_stmt s ^ "], [])"
+  | If(e, s1, s2) ->  "If(" ^ string_of_compare (build_compare e) ^ ", [" ^
+      string_of_stmt s1 ^ "], " ^ " [" ^ string_of_stmt s2 ^ "])"
+  | For(e1, e2, e3, s) -> string_of_expr e1 ^ string_of_stmt (While(e2, Block([s; Expr(e3)])))
+  | While(e, s) -> "While(" ^ string_of_compare (build_compare e) ^ "[" ^ string_of_stmt s ^ "], [])"
 
 let string_of_vdecl id = "int " ^ id ^ ";\n"
 
 let string_of_fdecl fdecl =
-  fdecl.fname ^ "(" ^ String.concat ", " fdecl.formals ^ ")\n{\n" ^
-  String.concat "" (List.map string_of_vdecl fdecl.locals) ^
-  String.concat "" (List.map string_of_stmt fdecl.body) ^
-  "}\n"
+  "FunctionDef('" ^ fdecl.fname ^ "', arguments([Name('self', Param())" ^ 
+    (if fdecl.formals = [] then "]" else
+      (List.fold_left (fun x y -> x ^ ", " ^ y) "" (List.map (fun x -> "Name('" ^ x ^ "', Param())") fdecl.formals) ^ "]")) ^ ", None, None, []), ["
+     ^ String.concat "" (List.map string_of_stmt fdecl.body) ^ "], [])]"
+(*  String.concat "" (List.map string_of_vdecl fdecl.locals) ^ *)
 
 let string_of_program (vars, funcs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
   String.concat "\n" (List.map string_of_fdecl funcs)
+
+let string_of_node ndecl = 
+  "ClassDef('" ^ ndecl.nname ^ "', [], " ^ "[" ^ String.concat ", " (List.map string_of_fdecl ndecl.functions)
