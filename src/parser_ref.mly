@@ -4,7 +4,7 @@
 	open Ast
 %}
 
-	%left SEMI COMMA
+	%token SEMI COMMA PERIOD
 	%right ASSIGN
 	%token LBRACK RBRACK LPAREN RPAREN LBRACE RBRACE
 	%token <string> ID
@@ -38,12 +38,10 @@
 	%token RETURN
 	%token WHILE
 
-	%token PLUS MINUS TIMES DIVIDE MOD
-	%token PLUSEQ MINUSEQ TIMESEQ DIVEQ
-	%token ASSIGN
-	%token EQ NEQ LT GT LEQ GEQ
-	%token AND OR NOT
-	%token PERIOD COMMA SEMI
+	%left PLUS MINUS TIMES DIVIDE MOD
+	/*%right PLUSEQ MINUSEQ TIMESEQ DIVEQ*/
+	%left EQ NEQ LT GT LEQ GEQ
+	%left AND OR NOT
 	%token QUOTE DQUOTE
 
 	%token FORWARD

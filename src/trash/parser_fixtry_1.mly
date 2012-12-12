@@ -2,19 +2,9 @@
 	open Printf
 	
 	open Ast
-
-	let parse_error e = print_endline e; flush stdout
 %}
-
-%token SEMI COMMA PERIOD
-%token ASSIGN
-%right ASSIGN
-%token LBRACK RBRACK LPAREN RPAREN LBRACE RBRACE
 %token <string> ID
 
-%token INTERFACE
-%token NODE
-%token FUN
 %token INT
 %token CHAR
 %token FLOAT
@@ -23,62 +13,38 @@
 %token BOOL
 %token VOID /* an indicator, can't actually have a void "thing" */
 
-%nonassoc ARRAY
-
-/*TODO: rename LCONST --> ICONST, DCONST --> FCONST*/
+  /*TODO: rename LCONST --> ICONST, DCONST --> FCONST*/
 %token <int> LCONST
 %token <float> DCONST
 %token <char> CCONST
 %token <string> SCONST
 %token <bool> BCONST
 
-%token BREAK
-%token CONTINUE
-%token ELSE
-%token NOELSE
-%token FOR
-%token IF
-%token RETURN
-%token WHILE
-
-%token PLUS MINUS TIMES DIVIDE MOD
 %left PLUS MINUS TIMES DIVIDE MOD
-%token PLUSEQ MINUSEQ TIMESEQ DIVEQ
-%right PLUSEQ MINUSEQ TIMESEQ DIVEQ
-%token EQ NEQ LT GT LEQ GEQ
-%left EQ NEQ LT GT LEQ GEQ
-%token AND OR NOT
-%left AND OR NOT
-%token QUOTE DQUOTE
+%left EQ NEQ LT GT LEQ GEQ AND OR
+%right NOT
 
-%token FORWARD
-%token TO
+%right ASSIGN
+%token SEMI
 
 %token NEWLINE
 %token EOF
 
 %start program
 %type <Ast.program> program
-
 %%
 
 program: 
-          | /*empty*/	   { [] }
-          | program NEWLINE  { [] }
-	  | program var_decl NEWLINE { $2 :: $1 }
-/*	  | program error NEWLINE { print_string("error found...");[] } */
+	 /* empty */	        { [] }
+	| program var_decl	{ $2 :: $1 }
 
-
-/*print_string "declaring variable: "; print_string $2; flush stdout; $2*/
 
 var_decl:
-           dtype ID ASSIGN expr SEMI      { print_string("var declared..."); flush stdout;VarDecl($1, $2, $4) }
-	/*dtype ID ASSIGN expr SEMI	  { VarDecl($1, $2, $4) }*/
+	dtype ID ASSIGN expr SEMI	  { print_string "declaring variable: "; print_string $2; flush stdout; $2 }
 
 expr:
-	  ID			  { Id($1) }
+	| ID			  { Id($1) }
 	| CCONST		  { CharLiteral($1) }
-	| SCONST                  { StringLiteral($1) }
 	| LCONST		  { IntLiteral($1) }
 	| DCONST		  { FloatLiteral($1) }
 	| BCONST		  { BoolLiteral($1) }
