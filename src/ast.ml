@@ -1,15 +1,22 @@
 type binop = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Leq | Gt | Geq | And | Or
-
 type unop = Not | Neg | Inc
 
+type dtype = CharType | StringType | IntType | FloatType | BoolType | VoidType
+type formal = Formal of dtype * string
+
 type expr = 
-    Literal of int
+  | CharLiteral of char
+  | IntLiteral of int
+  | FloatLiteral of float
+  | BoolLiteral of bool
   | Id of string
   | Binop of expr * binop * expr
   | Unop of unop * expr
   | Assign of string * expr
   | Call of string * expr list
   | Noexpr
+
+type var_decl  = VarDecl of dtype * string * expr
 
 type stmt = 
     Block of stmt list
@@ -100,4 +107,4 @@ let string_of_program (vars, funcs) =
   String.concat "\n" (List.map string_of_fdecl funcs)
 
 let string_of_node ndecl = 
-  "ClassDef('" ^ ndecl.nname ^ "', [], " ^ "[" ^ String.concat ", " (List.map string_of_fdecl ndecl.functions)
+  "ClassDef('" ^ ndecl.nname ^ "', [], " ^ "[" ^ String.concat ", " (List.map string_of_fdecl ndecl.functions) ^ ", [])"
