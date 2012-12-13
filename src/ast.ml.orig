@@ -6,7 +6,7 @@ type dtype = CharType | StringType | IntType | FloatType | BoolType | VoidType
 type formal = Formal of dtype * string
 
 type expr = 
-    Id of string
+  Id of string
   | CharLiteral of char
   | StringLiteral of string
   | IntLiteral of int
@@ -58,15 +58,12 @@ type node = {
 (*type program = node list*)
 type program = fun_decl list
 
-
-
-
 let rec string_of_expr = function
-    CharLiteral(l) -> "Char(" ^ Char.escaped(l) ^ ")"
+    CharLiteral(l) -> "String(" ^ Char.escaped(l) ^ ")"
+  | IntLiteral(l) -> "Num(" ^ string_of_int(l) ^ ")"
+  | FloatLiteral(l) -> "Num(" ^ string_of_float(l) ^ ")"
   | StringLiteral(l) -> "String(" ^ l ^ ")"
-  | IntLiteral(l) -> "Int(" ^ string_of_int(l) ^ ")"
-  | FloatLiteral(l) -> "Float(" ^ string_of_float(l) ^ ")"
-  | BoolLiteral(l) -> "Bool(" ^ string_of_bool(l) ^ ")"
+  | BoolLiteral(l) -> "Bool(" ^ string_of_bool(l) ^ ")" 
   | Id(s) -> "Name('" ^ s ^ "', Load())"
   | Binop(e1, o, e2) -> (*TODO: why do we have the "()"?? can probably get rid of them*)
       "BinOp(" ^ string_of_expr e1 ^ ", " ^
@@ -74,8 +71,8 @@ let rec string_of_expr = function
         Add -> "Add()" | Sub -> "Sub()" | Mult -> "Mult()" | Div -> "Div()" | Mod -> "Mod()"
       | Eq -> "Eq()" | Neq -> "NotEq()"
       | Lt -> "Lt()" | Leq -> "LtE()" | Gt -> "Gt()" | Geq -> "GtE()"
-      | Or -> "Or()" | And -> "And()" ) ^ ", " ^ 
-      string_of_expr e2 ^ ")"
+      | Or -> "Or()" | And -> "And()") ^ ", " ^ 
+        string_of_expr e2 ^ ")"
   | Unop(o, e1) ->
     "UnaryOp(" ^
       (match o with
@@ -124,10 +121,21 @@ let string_of_formal = function
     Formal(x, y) -> (string_of_dtype x) ^ " " ^ y
 
 let string_of_fdecl fdecl =
+<<<<<<< HEAD
   fdecl.fname ^ "(" ^ String.concat ", " (List.map string_of_formal fdecl.formals) ^ ")\n{\n" ^
   String.concat "" (List.map string_of_vdecl fdecl.locals) ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
+
+let string_of_program (vars, funcs) =
+  String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
+  String.concat "\n" (List.map string_of_fdecl funcs)
+=======
+  "FunctionDef('" ^ fdecl.fname ^ "', arguments([Name('self', Param())" ^ 
+    (if fdecl.formals = [] then "]" else
+      (List.fold_left (fun x y -> x ^ ", " ^ y) "" (List.map (fun x -> "Name('" ^ x ^ "', Param())") fdecl.formals) ^ "]")) ^ ", None, None, []), ["
+(*    String.concat "" (List.map string_of_vdecl fdecl.locals) *)
+     ^ String.concat "" (List.map string_of_stmt fdecl.body) ^ "], [])]"
 
 let string_of_node ndecl = 
   "ClassDef('" ^ ndecl.nname ^ "', [], " ^ "[" ^ String.concat ", " (List.map string_of_fdecl ndecl.functions) ^ "], [])"
@@ -136,3 +144,4 @@ let string_of_program nodes =
   "Module([" ^ (String.concat ", " (List.map string_of_node nodes)) ^ "])"
 
 let n = [{ nname="hi"; args=[]; local_vars=[]; compute=[Print(IntLiteral(1))]; functions=[]}]
+>>>>>>> a1353e793a408ca513120b6e4b57e6d20b0f3466

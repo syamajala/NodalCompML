@@ -89,7 +89,7 @@ compound_statement:
 stmt:
             LBRACE compound_statement RBRACE  { Block($2) }
           | expr SEMI                             { Expr($1) }
-          | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Nostmt) }
+/*          | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Nostmt) }
           | IF LPAREN expr RPAREN stmt ELSE  stmt   { If($3, $5, $7) }
           | WHILE LPAREN expr RPAREN stmt         { While($3, $5) }
           | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt  { For($3, $5, $7, $9) }
@@ -97,8 +97,8 @@ stmt:
           | CONTINUE SEMI { Continue }
           | RETURN expr SEMI      { Return($2) }
           | RETURN SEMI           { Return(Noexpr) }
-            /*FORWARD */
-
+           FORWARD
+*/
 
 actual_list_opt:
         /*empty*/                 { [] }
