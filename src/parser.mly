@@ -65,15 +65,55 @@
 program: 
           | /*empty*/	   { [] }
           | program NEWLINE  { [] }
-	  | program var_decl NEWLINE { $2 :: $1 }
+	  | program fun_decl NEWLINE { $2 :: $1 }
 /*	  | program error NEWLINE { print_string("error found...");[] } */
 
+fun_decl_list :
+          | /* empty */                   { [] }
+          | fun_decl_list fun_decl        { $2 :: $1 }
 
-/*print_string "declaring variable: "; print_string $2; flush stdout; $2*/
+fun_decl:
+        dtype FUN ID LPAREN actual_list_opt RPAREN
+           LBRACE var_decl_list
+                  compound_statement RBRACE
+        { { return_type = $1;
+            fname       = $3;
+            formals     = $5;
+            locals      = List.rev $8;
+            body        = List.rev $9 } }
+
+compound_statement:
+	    /*nothing*/           { [] }
+	  | compound_statement stmt { $2 :: $1 }
+
+stmt:
+            LBRACE compound_statement RBRACE  { Block($2) }
+          | expr SEMI                             { Expr($1) }
+          | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Nostmt) }
+          | IF LPAREN expr RPAREN stmt ELSE  stmt   { If($3, $5, $7) }
+          | WHILE LPAREN expr RPAREN stmt         { While($3, $5) }
+          | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt  { For($3, $5, $7, $9) }
+	  | BREAK SEMI    { Break }
+          | CONTINUE SEMI { Continue }
+          | RETURN expr SEMI      { Return($2) }
+          | RETURN SEMI           { Return(Noexpr) }
+            /*FORWARD */
+
+
+actual_list_opt:
+        /*empty*/                 { [] }
+          | actual_list           { List.rev $1 }
+
+actual_list:
+          dtype ID                      { [Formal($1, $2)] }
+          | actual_list COMMA dtype ID  { Formal($3, $4) :: $1 }
+
+var_decl_list:
+          /* empty */                { [] }
+	  | var_decl_list var_decl { $2 :: $1 }
 
 var_decl:
-           dtype ID ASSIGN expr SEMI      { print_string("var declared..."); flush stdout;VarDecl($1, $2, $4) }
-	/*dtype ID ASSIGN expr SEMI	  { VarDecl($1, $2, $4) }*/
+           dtype ID ASSIGN expr SEMI      { print_string("var declared..."); flush stdout; VarDecl($1, $2, $4) }
 
 expr:
 	  ID			  { Id($1) }

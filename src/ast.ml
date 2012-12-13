@@ -34,22 +34,22 @@ type stmt =
 type fun_decl = {
   return_type : dtype;
   fname : string;
-  formals : string list; 
-  locals : string list;
+  formals : formal list; 
+  locals : var_decl list;
   body : stmt list;
 }
 
 (*TODO: rename this to node_decl and change the args/local_vals stuff *)
 type node = {
 	nname : string;
-	args : string list;
-	local_vars : string list;
+	args : formal list;
+	local_vars : var_decl list;
 	compute : stmt list;
 	functions : fun_decl list;
 }
 
 (*type program = node list*)
-type program = var_decl list
+type program = fun_decl list
 
 
 
@@ -94,10 +94,22 @@ let rec string_of_stmt = function
   | Continue -> "Continue;"
   | Nostmt -> ""
 
-let string_of_vdecl id = "int " ^ id ^ ";\n"
+let string_of_dtype = function
+    CharType -> "char"
+  | StringType -> "string"
+  | IntType -> "int"
+  | FloatType -> "float"
+  | BoolType -> "bool"
+  | VoidType -> "void"
+
+let string_of_vdecl = function
+    VarDecl(x, y, z) -> (string_of_dtype x) ^ y ^ (string_of_expr z) ^ ";\n"
+
+let string_of_formal = function
+    Formal(x, y) -> (string_of_dtype x) ^ " " ^ y
 
 let string_of_fdecl fdecl =
-  fdecl.fname ^ "(" ^ String.concat ", " fdecl.formals ^ ")\n{\n" ^
+  fdecl.fname ^ "(" ^ String.concat ", " (List.map string_of_formal fdecl.formals) ^ ")\n{\n" ^
   String.concat "" (List.map string_of_vdecl fdecl.locals) ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
