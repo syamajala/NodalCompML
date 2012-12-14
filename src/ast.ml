@@ -56,7 +56,7 @@ type node = {
 }
 
 (*type program = node list*)
-type program = fun_decl list
+type program = node list
 
 
 
