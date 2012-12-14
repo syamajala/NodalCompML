@@ -1,5 +1,6 @@
 node blur (float strength, int img) {
   float pi = 3.14;
+  string swap = "sucks";
   fun int bpixarea (int region) { 
     region = region * strength;
   }
