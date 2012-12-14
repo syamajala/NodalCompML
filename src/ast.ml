@@ -55,20 +55,17 @@ type node = {
 	functions : fun_decl list;
 }
 
-(*type program = node list*)
-type program = fun_decl list
-
-
-
+type program = node list
+(*type program = fun_decl list*)
 
 let rec string_of_expr = function
-    CharLiteral(l) -> "Char(" ^ Char.escaped(l) ^ ")"
-  | StringLiteral(l) -> "String(" ^ l ^ ")"
-  | IntLiteral(l) -> "Int(" ^ string_of_int(l) ^ ")"
-  | FloatLiteral(l) -> "Float(" ^ string_of_float(l) ^ ")"
+    CharLiteral(l) -> "Str(" ^ Char.escaped(l) ^ ")"
+  | StringLiteral(l) -> "Str(" ^ l ^ ")"
+  | IntLiteral(l) -> "Num(" ^ string_of_int(l) ^ ")"
+  | FloatLiteral(l) -> "Num(" ^ string_of_float(l) ^ ")"
   | BoolLiteral(l) -> "Bool(" ^ string_of_bool(l) ^ ")"
   | Id(s) -> "Name('" ^ s ^ "', Load())"
-  | Binop(e1, o, e2) -> (*TODO: why do we have the "()"?? can probably get rid of them*)
+  | Binop(e1, o, e2) -> 
       "BinOp(" ^ string_of_expr e1 ^ ", " ^
       (match o with
         Add -> "Add()" | Sub -> "Sub()" | Mult -> "Mult()" | Div -> "Div()" | Mod -> "Mod()"
@@ -80,9 +77,9 @@ let rec string_of_expr = function
     "UnaryOp(" ^
       (match o with
         Not -> "Invert()")  ^ string_of_expr e1
-  | Assign(v, e) -> "Assign([Name('" ^ v ^ "), Store()], " ^  string_of_expr e ^ ")"
+  | Assign(v, e) -> "Assign([Name('" ^ v ^ "'), Store()], " ^  string_of_expr e ^ ")"
   | Call(f, el) ->
-    "Call(" ^ string_of_expr(Id(f)) ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+    "Call(Attribute(Name('self', Load()), '" ^ f ^ "', Load())" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
 
 let rec string_of_compare compare = 
@@ -118,16 +115,20 @@ let string_of_dtype = function
   | VoidType -> "void"
 
 let string_of_vdecl = function
-    VarDecl(x, y, z) -> (string_of_dtype x) ^ y ^ (string_of_expr z) ^ ";\n"
+    VarDecl(x, y, z) -> string_of_expr (Assign(y,z))
 
 let string_of_formal = function
-    Formal(x, y) -> (string_of_dtype x) ^ " " ^ y
+    Formal(x, y) -> y
 
 let string_of_fdecl fdecl =
-  fdecl.fname ^ "(" ^ String.concat ", " (List.map string_of_formal fdecl.formals) ^ ")\n{\n" ^
-  String.concat "" (List.map string_of_vdecl fdecl.locals) ^
-  String.concat "" (List.map string_of_stmt fdecl.body) ^
-  "}\n"
+  "FunctionDef('" ^ fdecl.fname ^ "', arguments([Name('self', Param())" ^ 
+    (if fdecl.formals = [] then "]" else
+      (List.fold_left (fun x y -> x ^ ", " ^ y) "" (List.map (fun x -> "Name('" ^ string_of_formal x ^ "', Param())") fdecl.formals) ^ "]")) ^ ", None, None, []), [" 
+     ^ (String.concat ", " (List.map string_of_vdecl fdecl.locals)) ^ " " 
+     ^ (String.concat " " (List.map string_of_stmt fdecl.body)) ^ "], [])]"
+
+let string_of_compute c = 
+  string_of_stmt (Block(c.compute))
 
 let string_of_node ndecl = 
   "ClassDef('" ^ ndecl.nname ^ "', [], " ^ "[" ^ String.concat ", " (List.map string_of_fdecl ndecl.functions) ^ "], [])"
@@ -135,4 +136,35 @@ let string_of_node ndecl =
 let string_of_program nodes =
   "Module([" ^ (String.concat ", " (List.map string_of_node nodes)) ^ "])"
 
-let n = [{ nname="hi"; args=[]; local_vars=[]; compute=[Print(IntLiteral(1))]; functions=[]}]
+let v = VarDecl(StringType, "x", StringLiteral("mesg"))
+let f = { return_type = VoidType; fname = "sayhi"; formals = []; locals = []; body = [Print(StringLiteral("hi"))] }
+let n = [{ nname="hi"; args=[]; local_vars=[]; compute=[Expr(Call("sayhi", [Noexpr]))]; functions=[f]}]
+
+
+(*
+"""class hi():\n    def compute(self):\n        self.sayhi()\n\n    def sayhi(self):\n        print 'hi'"""
+
+class hi():
+    def compute(self):
+        self.sayhi()
+
+    def sayhi(self):
+        print 'hi'
+
+"Module([ClassDef('hi', [], 
+  [FunctionDef('compute', arguments([Name('self', Param())], None, None, []), [Expr(Call(Attribute(Name('self', Load()), 'sayhi', Load()), [], [], None, None))], []), 
+  FunctionDef('sayhi', arguments([Name('self', Param())], None, None, []), [Print(None, [Str('hi')], True)], [])], [])])"
+*)
+
+(*
+"""class hi():\n    def compute(self):\n        self.sayhi('hi')\n\n    def sayhi(self, mesg):\n        print mesg"""
+
+class hi():
+    def compute(self):
+        self.sayhi('hi')
+
+    def sayhi(self, mesg):
+        print mesg
+
+"Module([ClassDef('hi', [], [FunctionDef('compute', arguments([Name('self', Param())], None, None, []), [Expr(Call(Attribute(Name('self', Load()), 'sayhi', Load()), [Str('hi')], [], None, None))], []), FunctionDef('sayhi', arguments([Name('self', Param()), Name('mesg', Param())], None, None, []), [Print(None, [Name('mesg', Load())], True)], [])], [])])"
+*)

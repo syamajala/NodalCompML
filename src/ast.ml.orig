@@ -131,11 +131,6 @@ let string_of_program (vars, funcs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
   String.concat "\n" (List.map string_of_fdecl funcs)
 =======
-  "FunctionDef('" ^ fdecl.fname ^ "', arguments([Name('self', Param())" ^ 
-    (if fdecl.formals = [] then "]" else
-      (List.fold_left (fun x y -> x ^ ", " ^ y) "" (List.map (fun x -> "Name('" ^ x ^ "', Param())") fdecl.formals) ^ "]")) ^ ", None, None, []), ["
-(*    String.concat "" (List.map string_of_vdecl fdecl.locals) *)
-     ^ String.concat "" (List.map string_of_stmt fdecl.body) ^ "], [])]"
 
 let string_of_node ndecl = 
   "ClassDef('" ^ ndecl.nname ^ "', [], " ^ "[" ^ String.concat ", " (List.map string_of_fdecl ndecl.functions) ^ "], [])"
