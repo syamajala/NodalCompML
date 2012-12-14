@@ -71,24 +71,24 @@ program:
 
 node: /*think of a better way to handle these 3 optional things in a row...*/
         NODE ID LPAREN formal_list_opt RPAREN 
-                LBRACE  var_decl_list NEWLINE
-	                fun_decl_list NEWLINE
+                LBRACE  var_decl_list
+	                fun_decl_list
                         compound_statement RBRACE
         { { nname       = $2;
             args        = $4;
             local_vars  = List.rev $7;
-            functions   = List.rev $9;
-            compute     = List.rev $11 } }
+            functions   = List.rev $8;
+            compute     = List.rev $9 } }
 
 fun_decl_list :
           | /* empty */                   { [] }
           | fun_decl_list fun_decl        { $2 :: $1 }
 
 fun_decl:
-        dtype FUN ID LPAREN formal_list_opt RPAREN
+        FUN dtype ID LPAREN formal_list_opt RPAREN
            LBRACE var_decl_list
                   compound_statement RBRACE
-        { { return_type = $1;
+        { { return_type = $2;
             fname       = $3;
             formals     = $5;
             locals      = List.rev $8;
