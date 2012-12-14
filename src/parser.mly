@@ -42,6 +42,8 @@
 %token RETURN
 %token WHILE
 
+%token PRINT
+
 %token PLUS MINUS TIMES DIVIDE MOD
 %left PLUS MINUS TIMES DIVIDE MOD
 %token PLUSEQ MINUSEQ TIMESEQ DIVEQ
@@ -108,6 +110,7 @@ stmt:
           | CONTINUE SEMI { Continue }
           | RETURN expr SEMI      { Return($2) }
           | RETURN SEMI           { Return(Noexpr) }
+	  | PRINT expr SEMI	  { Print($2) }
 	    /*FORWARD*/
 
 formal_list_opt:

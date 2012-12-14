@@ -75,7 +75,8 @@ let rec string_of_expr = function
   | Unop(o, e1) ->
     "UnaryOp(" ^
       (match o with
-        Not -> "Invert()")  ^ string_of_expr e1
+        Not -> "Not()"
+        | Neg -> "USub()")  ^ string_of_expr e1 ^ ")"
   | Assign(v, e) -> "Assign([Name('" ^ v ^ "'), Store()], " ^  string_of_expr e ^ ")"
   | Call(f, el) ->
     "Call(Attribute(Name('self', Load()), '" ^ f ^ "', Load())" ^ String.concat ", " (List.map string_of_expr el) ^ ")"

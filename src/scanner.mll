@@ -38,6 +38,7 @@ rule token = parse
 	| "return" {RETURN}
 	| "to"	{TO}
 	| "while" {WHILE}
+	| "print" {PRINT}
 	| '(' {LPAREN}	| ')' {RPAREN} 	(*  operators *)
 	| '{' {LBRACE}	| '}' {RBRACE}
 	| '[' {LBRACK} 	| ']' {RBRACK}
