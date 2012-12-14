@@ -55,7 +55,6 @@
 %token FORWARD
 %token TO
 
-%token NEWLINE
 %token EOF
 
 %start program
@@ -65,19 +64,30 @@
 
 program: 
           | /*empty*/	   { [] }
-          | program NEWLINE  { [] }
-	  | program fun_decl NEWLINE { $2 :: $1 }
-/*	  | program error NEWLINE { print_string("error found...");[] } */
+/*          | program  { [] }*/
+	  | program node { $2 :: $1 }
+/*	  | program error { print_string("error found...");[] } */
+
+node: /*think of a better way to handle these 3 optional things in a row...*/
+        NODE ID LPAREN formal_list_opt RPAREN 
+                LBRACE  var_decl_list
+	                fun_decl_list
+                        compound_statement RBRACE
+        { { nname       = $2;
+            args        = $4;
+            local_vars  = List.rev $7;
+            functions   = List.rev $8;
+            compute     = List.rev $9 } }
 
 fun_decl_list :
           | /* empty */                   { [] }
           | fun_decl_list fun_decl        { $2 :: $1 }
 
 fun_decl:
-        dtype FUN ID LPAREN actual_list_opt RPAREN
+        FUN dtype ID LPAREN formal_list_opt RPAREN
            LBRACE var_decl_list
                   compound_statement RBRACE
-        { { return_type = $1;
+        { { return_type = $2;
             fname       = $3;
             formals     = $5;
             locals      = List.rev $8;
@@ -100,20 +110,28 @@ stmt:
           | RETURN SEMI           { Return(Noexpr) }
 	    /*FORWARD*/
 
-actual_list_opt:
+formal_list_opt:
         /*empty*/                 { [] }
-          | actual_list           { List.rev $1 }
+          | formal_list           { List.rev $1 }
+
+formal_list:
+          dtype ID                      { [Formal($1, $2)] }
+          | formal_list COMMA dtype ID  { Formal($3, $4) :: $1 }
+
+actual_list_opt:
+	    /*empty*/             { [] }
+	  | actual_list           { List.rev $1 }
 
 actual_list:
-          dtype ID                      { [Formal($1, $2)] }
-          | actual_list COMMA dtype ID  { Formal($3, $4) :: $1 }
+	    expr             { [$1] }
+	  | actual_list COMMA expr { $3 :: $1 }
 
 var_decl_list:
           /* empty */                { [] }
 	  | var_decl_list var_decl { $2 :: $1 }
 
 var_decl:
-           dtype ID ASSIGN expr SEMI      { print_string("var declared..."); flush stdout; VarDecl($1, $2, $4) }
+           dtype ID ASSIGN expr SEMI      { print_endline("variable declared..."); flush stdout; VarDecl($1, $2, $4) }
 
 expr:
 	  ID			  { Id($1) }
@@ -137,6 +155,7 @@ expr:
 	| expr GEQ expr		  { Binop($1, Geq, $3) }
 	| expr AND expr		  { Binop($1, And, $3) }
 	| expr OR expr		  { Binop($1, Or, $3) }
+	| ID LPAREN actual_list_opt RPAREN { Call($1, $3) }
 	| LPAREN expr RPAREN      { $2 }
 	| NOT expr 		  { Unop(Not, $2) }
 

@@ -56,7 +56,6 @@ type node = {
 }
 
 type program = node list
-(*type program = fun_decl list*)
 
 let rec string_of_expr = function
     CharLiteral(l) -> "Str(" ^ Char.escaped(l) ^ ")"
@@ -165,6 +164,8 @@ class hi():
 
     def sayhi(self, mesg):
         print mesg
+
+hi().compute()
 
 "Module([ClassDef('hi', [], [FunctionDef('compute', arguments([Name('self', Param())], None, None, []), [Expr(Call(Attribute(Name('self', Load()), 'sayhi', Load()), [Str('hi')], [], None, None))], []), FunctionDef('sayhi', arguments([Name('self', Param()), Name('mesg', Param())], None, None, []), [Print(None, [Name('mesg', Load())], True)], [])], [])])"
 *)
