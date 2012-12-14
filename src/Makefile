@@ -16,7 +16,7 @@ parser.ml: parser.mli ast.cmo
 	$(CC) -c parser.mli
 
 parser.mli: parser.mly
-	$(YACC) parser.mly
+	$(YACC) -v parser.mly
 
 scanner.cmo: scanner.ml
 	$(CC) -c scanner.ml

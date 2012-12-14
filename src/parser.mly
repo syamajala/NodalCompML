@@ -35,7 +35,8 @@
 %token BREAK
 %token CONTINUE
 %token ELSE
-%token NOELSE
+%nonassoc ELSE
+%nonassoc NOELSE
 %token FOR
 %token IF
 %token RETURN
@@ -87,18 +88,17 @@ compound_statement:
 	  | compound_statement stmt { $2 :: $1 }
 
 stmt:
-            LBRACE compound_statement RBRACE  { Block($2) }
-          | expr SEMI                             { Expr($1) }
-/*          | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Nostmt) }
-          | IF LPAREN expr RPAREN stmt ELSE  stmt   { If($3, $5, $7) }
+            expr SEMI                             { Expr($1) }
+          | LBRACE compound_statement RBRACE  { Block($2) }
+          | IF LPAREN expr RPAREN stmt %prec NOELSE { print_endline("IF STATMENT HIT ELSELESS"); flush stdout;If($3, $5, Nostmt) }
+          | IF LPAREN expr RPAREN stmt ELSE stmt   { print_endline("IF ELSE HIT"); flush stdout; If($3, $5, $7) }
           | WHILE LPAREN expr RPAREN stmt         { While($3, $5) }
           | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt  { For($3, $5, $7, $9) }
 	  | BREAK SEMI    { Break }
           | CONTINUE SEMI { Continue }
           | RETURN expr SEMI      { Return($2) }
           | RETURN SEMI           { Return(Noexpr) }
-           FORWARD
-*/
+	    /*FORWARD*/
 
 actual_list_opt:
         /*empty*/                 { [] }
@@ -117,6 +117,7 @@ var_decl:
 
 expr:
 	  ID			  { Id($1) }
+	| ID ASSIGN expr          { Assign($1, $3) }
 	| CCONST		  { CharLiteral($1) }
 	| SCONST                  { StringLiteral($1) }
 	| LCONST		  { IntLiteral($1) }
@@ -136,6 +137,7 @@ expr:
 	| expr GEQ expr		  { Binop($1, Geq, $3) }
 	| expr AND expr		  { Binop($1, And, $3) }
 	| expr OR expr		  { Binop($1, Or, $3) }
+	| LPAREN expr RPAREN      { $2 }
 	| NOT expr 		  { Unop(Not, $2) }
 
 dtype:
