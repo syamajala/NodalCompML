@@ -55,7 +55,6 @@
 %token FORWARD
 %token TO
 
-%token NEWLINE
 %token EOF
 
 %start program
@@ -65,9 +64,9 @@
 
 program: 
           | /*empty*/	   { [] }
-          | program NEWLINE  { [] }
-	  | program node NEWLINE { $2 :: $1 }
-/*	  | program error NEWLINE { print_string("error found...");[] } */
+/*          | program  { [] }*/
+	  | program node { $2 :: $1 }
+/*	  | program error { print_string("error found...");[] } */
 
 node: /*think of a better way to handle these 3 optional things in a row...*/
         NODE ID LPAREN formal_list_opt RPAREN 

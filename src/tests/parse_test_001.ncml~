@@ -1,0 +1,1 @@
+node blur (float strength, int img) { fun int bpixarea (int region) { region = region * strength; } img_region = img + 42; return bpixarea(img_region); }

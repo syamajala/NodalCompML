@@ -7,8 +7,7 @@ let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
 let symbol = ['`' '~' '!' '@' '#' '$' '%' '^' '&' '*' '(' ')' '-' '_' '=' '+' '{' '}' '[' ']' '|' ':' ';' ''' '"' '<' '>' ',' '.' '?' '/']
 (*let escape_characters = "\\" | "\\\\" | "\n" | "\t"  (* not sure *) *)
-let whitespace = [' ' '\t']
-let newline = "\r\n" | "\n"
+let whitespace = [' ' '\t' '\n']
 let identifier = ('_' | letter) ('_' | letter | digit)*
 let bool_value = "true" | "false"
 
@@ -57,7 +56,6 @@ rule token = parse
 	| ';' {SEMI}
 	| "\'" {QUOTE} 	| "\"" {DQUOTE}
 	| identifier as lit {ID(lit)}
-        |  newline { NEWLINE }
 	| eof { raise Eof }
 	| _ as char {raise (Failure("illegal character: " 
 					^ Char.escaped char))}
