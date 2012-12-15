@@ -1,5 +1,5 @@
 type binop = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Leq | Gt | Geq | And | Or
-type unop = Not | Neg | Inc
+type unop = Not | Neg
 
 type dtype = CharType | StringType | IntType | FloatType | BoolType | VoidType
 
@@ -31,6 +31,12 @@ type stmt =
   | Continue
   | Break
   | Nostmt
+
+type boolop = {
+  bop : binop;
+  left : expr;
+  right : expr;
+}
 
 type compare = {
   left : expr;
@@ -75,20 +81,36 @@ let rec string_of_expr = function
   | Unop(o, e1) ->
     "UnaryOp(" ^
       (match o with
-        Not -> "Invert()")  ^ string_of_expr e1
+        Not -> "Not()"
+        | Neg -> "USub()")  ^ string_of_expr e1 ^ ")"
   | Assign(v, e) -> "Assign([Name('" ^ v ^ "'), Store()], " ^  string_of_expr e ^ ")"
   | Call(f, el) ->
     "Expr(Call(Attribute(Name('self', Load()), '" ^ f ^ "', Load()), [" ^ String.concat ", " (List.map string_of_expr el) ^ "], [], None, None))"
   | Noexpr -> ""
 
-let rec string_of_compare compare = 
+(*
+let string_of_boolop boolop =
+  "BoolOp(" ^ 
+    (match boolop.bop with
+        And -> "And()"
+      | Or -> "Or()") ^ ", [" ^ string_of_expr boolop.left ^ ", " ^ string_of_expr boolop.right ^ "])"
+*)
+
+let string_of_compare compare = 
   "Compare(" ^ string_of_expr compare.left ^ ", [" ^ 
     (match compare.cmpop with 
-      Eq -> "Eq()" | Neq -> "NotEq()" | Lt -> "Lt()" | Leq -> "LtE()" | Gt -> "Gt()" | Geq -> "GtE()")
+        Eq -> "Eq()" | Neq -> "NotEq()" 
+      | Lt -> "Lt()" | Leq -> "LtE()" 
+      | Gt -> "Gt()" | Geq -> "GtE()" )
       ^  "], [" ^ string_of_expr compare.right ^ "])"
 
 let build_compare = function
   | Binop(e1, o, e2) -> { left=e1; cmpop=o; right = e2 }
+
+(*
+let build_boolop = function
+  | Binop(e1, o, e2) -> { boolop=o; left=e1; left=e2 }
+*)
 
 let rec string_of_stmt = function
     Block(stmts) ->
