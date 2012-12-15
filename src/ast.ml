@@ -111,7 +111,7 @@ let string_of_dtype = function
   | IntType -> "int"
   | FloatType -> "float"
   | BoolType -> "bool"
-  | VoidType -> "void"
+1  | VoidType -> "void"
 
 let string_of_vdecl = function
     VarDecl(x, y, z) -> string_of_expr (Assign(y,z))
@@ -134,7 +134,7 @@ let string_of_node ndecl =
 
 (* this is kinda bad, because it can only handle one node right now, and does no forwarding *)
 let string_of_program nodes =
-  "Module([" ^ (String.concat ", " (List.map string_of_node nodes)) 
+  "Module([Assign([Name('nodes', Store())], Dict([], [])), FunctionDef('forward', arguments([Name('node', Param()), Name('args', Param())], None, None, []), [Expr(Call(Attribute(Subscript(Name('nodes', Load()), Index(Name('node', Load())), Load()), 'compute', Load()), [], [], Name('args', Load()), None))], []), " ^ (String.concat ", " (List.map string_of_node nodes)) 
   ^ ", FunctionDef('main', arguments([], None, None, []), [Expr(Call(Attribute(Call(Name('" ^ (List.hd nodes).nname
   ^ "', Load()), [], [], None, None), 'compute', Load()), [], [], None, None))], []), Expr(Call(Name('main', Load()), [], [], None, None))" ^ "])"
 
@@ -171,4 +171,30 @@ hi().compute()
 
 "Module([ClassDef('hi', [], 
 [FunctionDef('compute', arguments([Name('self', Param())], None, None, []), [Expr(Call(Attribute(Name('self', Load()), 'sayhi', Load()), [Str('hi')], [], None, None))], []), FunctionDef('sayhi', arguments([Name('self', Param()), Name('mesg', Param())], None, None, []), [Print(None, [Name('mesg', Load())], True)], [])], []), Expr(Call(Attribute(Call(Name('hi', Load()), [], [], None, None), 'compute', Load()), [], [], None, None))])"
+*)
+
+(*
+nodes = {}
+
+def forward(node, args):
+    nodes[node].compute(*args)
+
+class node1():
+
+    def compute(self):
+        forward('node2', ["hi"])
+
+class node2():
+
+    def compute(self, arg1):
+        print arg1
+
+def main():
+    global nodes
+    nodes = { 'node1': node1(), 'node2': node2() }
+    nodes['node1'].compute()
+
+main()
+
+"Module([Assign([Name('nodes', Store())], Dict([], [])), FunctionDef('forward', arguments([Name('node', Param()), Name('args', Param())], None, None, []), [Expr(Call(Attribute(Subscript(Name('nodes', Load()), Index(Name('node', Load())), Load()), 'compute', Load()), [], [], Name('args', Load()), None))], []), ClassDef('node1', [], [FunctionDef('compute', arguments([Name('self', Param())], None, None, []), [Expr(Call(Name('forward', Load()), [Str('node2'), List([Str('hi')], Load())], [], None, None))], [])], []), ClassDef('node2', [], [FunctionDef('compute', arguments([Name('self', Param()), Name('arg1', Param())], None, None, []), [Print(None, [Name('arg1', Load())], True)], [])], []), FunctionDef('main', arguments([], None, None, []), [Global(['nodes']), Assign([Name('nodes', Store())], Dict([Str('node1'), Str('node2')], [Call(Name('node1', Load()), [], [], None, None), Call(Name('node2', Load()), [], [], None, None)])), Expr(Call(Attribute(Subscript(Name('nodes', Load()), Index(Str('node1')), Load()), 'compute', Load()), [], [], None, None))], []), Expr(Call(Name('main', Load()), [], [], None, None))])"
 *)
