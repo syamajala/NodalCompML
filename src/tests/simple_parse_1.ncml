@@ -1,0 +1,4 @@
+node blur () {
+     print "666";
+}
+

@@ -6,7 +6,19 @@ let main () =
     let source = open_in Sys.argv.(1) in
     let lexbuf = Lexing.from_channel source in
     let result = Parser.program Scanner.token lexbuf in
-    print_endline (string_of_program result)
-  with Scanner.Eof -> print_endline("end of file input.")
+    (*slip the resulting string representation of the ast into a python code file that will execute it using
+      the python interpreter*)
+    let output = "from ast import *\naststr=\"" ^ (string_of_program result) ^ "\"\nast=eval(aststr)\nast=fix_missing_locations(ast)\nobj=compile(ast,\"\",\"exec\")\nexec obj" in
+    let dest = open_out "IR.py" in
+    output_string dest output;
+    close_out dest;
+    let compile_result = Sys.command "python IR.py" in
+    match compile_result with
+	0 -> "success!"
+      | _ -> "error python ast compilation.";
+  with Scanner.Eof -> "end of file input."
       
 let _ = main()
+
+
+(*"from ast import *\naststr = \"" ^ stuff_from_string_of_program  ^ "\"\nast = eval(strast)\nast = fix_missing_locations(ast)\nobj = compile(ast, "", 'exec')\nexec obj"*)
