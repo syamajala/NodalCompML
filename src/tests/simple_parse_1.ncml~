@@ -1,8 +1,7 @@
-node test (float strength, int img) {
+node blur (float strength, int img) {
   // start variable declaration region
   float pi = 3.14;
-  string swap = "ram";
-  int img_region = img + 42;
+  string swap = "RAM";
   // end variable declaration region
 
   // start function declaration region
@@ -12,6 +11,7 @@ node test (float strength, int img) {
   // end function declaration region
 
   // expression region
+  img_region = img + 42;
   return bpixarea(img_region);
   // end expression region
 }
