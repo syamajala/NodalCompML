@@ -33,8 +33,8 @@ type stmt =
   | Nostmt
 
 type boolop = {
-  bop : binop;
   left : expr;
+  bop : binop;
   right : expr;
 }
 
@@ -70,14 +70,23 @@ let rec string_of_expr = function
   | FloatLiteral(l) -> "Num(" ^ string_of_float(l) ^ ")"
   | BoolLiteral(l) -> "Bool(" ^ string_of_bool(l) ^ ")"
   | Id(s) -> "Name('" ^ s ^ "', Load())"
-  | Binop(e1, o, e2) -> 
-      "BinOp(" ^ string_of_expr e1 ^ ", " ^
+  | Binop(e1, o, e2) ->
       (match o with
-        Add -> "Add()" | Sub -> "Sub()" | Mult -> "Mult()" | Div -> "Div()" | Mod -> "Mod()"
-      | Eq -> "Eq()" | Neq -> "NotEq()"
-      | Lt -> "Lt()" | Leq -> "LtE()" | Gt -> "Gt()" | Geq -> "GtE()"
-      | Or -> "Or()" | And -> "And()" ) ^ ", " ^ 
-      string_of_expr e2 ^ ")"
+      |Add|Sub|Mult|Div|Mod -> "BinOp(" ^ string_of_expr e1 ^ ", " ^ 
+        (match o with
+        | Add -> "Add()"
+        | Sub -> "Sub()"
+        | Mult -> "Mult()"
+        | Div -> "Div()"
+        | Mod -> "Mod()") ^ ", " ^ string_of_expr e2 ^ ")"      
+      |Eq|Neq|Lt|Leq|Gt|Geq -> "Compare(" ^ string_of_expr e1 ^ ", [" ^
+        (match o with 
+        | Eq -> "Eq()"
+        | Neq -> "NotEq()"
+        | Lt -> "Lt()"
+        | Leq -> "LtE()"
+        | Gt -> "Gt()"
+        | Geq -> "GtE()") ^ "], [" ^ string_of_expr e2 ^ "])")
   | Unop(o, e1) ->
     "UnaryOp(" ^
       (match o with
@@ -146,7 +155,7 @@ let string_of_fdecl fdecl =
     (if fdecl.formals = [] then "]" else
       (List.fold_left (fun x y -> x ^ ", " ^ y) "" (List.map (fun x -> "Name('" ^ string_of_formal x ^ "', Param())") fdecl.formals) ^ "]")) ^ ", None, None, []), [" 
      ^ (String.concat ", " (List.map string_of_vdecl fdecl.locals))  
-     ^ (String.concat " " (List.map string_of_stmt fdecl.body)) ^ "], [])"
+     ^ (String.concat ", " (List.map string_of_stmt fdecl.body)) ^ "], [])"
 
 let string_of_compute n = 
   string_of_fdecl ({ return_type = VoidType; fname = "compute"; formals = n.args; locals = []; body = n.compute })
