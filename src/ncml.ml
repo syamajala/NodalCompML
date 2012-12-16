@@ -8,7 +8,7 @@ let main () =
     let result = Parser.program Scanner.token lexbuf in
     (*slip the resulting string representation of the ast into a python code file that will execute it using
       the python interpreter*)
-    let output = "from ast import *\naststr=\"" ^ (string_of_program result) ^ "\"\nast=eval(aststr)\nast=fix_missing_locations(ast)\nobj=compile(ast,\"\",\"exec\")\nexec obj" in
+    let output = "from ast import *\nfrom DEBUG_AST_PRETTY_PRINTER import *\naststr=\"" ^ (string_of_program result) ^ "\"\nast=eval(aststr)\nast=fix_missing_locations(ast)\nprint dump(ast)\nobj=compile(ast,\"\",\"exec\")\nexec obj" in
     let dest = open_out "IR.py" in
     output_string dest output;
     close_out dest;
@@ -20,5 +20,3 @@ let main () =
       
 let _ = main()
 
-
-(*"from ast import *\naststr = \"" ^ stuff_from_string_of_program  ^ "\"\nast = eval(strast)\nast = fix_missing_locations(ast)\nobj = compile(ast, "", 'exec')\nexec obj"*)
