@@ -63,13 +63,17 @@ type node = {
 
 type program = node list
 
+let attributes = []
+
 let rec string_of_expr = function
     CharLiteral(l) -> "Str('" ^ Char.escaped(l) ^ "')"
   | StringLiteral(l) -> "Str('" ^ l ^ "')"
   | IntLiteral(l) -> "Num(" ^ string_of_int(l) ^ ")"
   | FloatLiteral(l) -> "Num(" ^ string_of_float(l) ^ ")"
   | BoolLiteral(l) -> "Bool(" ^ string_of_bool(l) ^ ")"
-  | Id(s) -> "Name('" ^ s ^ "', Load())"
+  | Id(s) -> (if List.exists (fun x -> x = s) attributes then
+      "Attribute(Name('self', Load()), '" else
+      "Name('") ^ s ^ "', Load())"
   | Binop(e1, o, e2) ->
       (match o with
       |Add|Sub|Mult|Div|Mod -> "BinOp(" ^ string_of_expr e1 ^ ", " ^ 
@@ -89,25 +93,19 @@ let rec string_of_expr = function
         | Geq -> "GtE()") ^ "], [" ^ string_of_expr e2 ^ "])"
       |And|Or -> "BoolOp(" ^
         (match o with
-	| And -> "And()"
+	    | And -> "And()"
         | Or -> "Or()") ^ string_of_expr e1 ^ ", " ^ string_of_expr e2 ^ "]" )
   | Unop(o, e1) ->
     "UnaryOp(" ^
       (match o with
         Not -> "Not()"
         | Neg -> "USub()")  ^ string_of_expr e1 ^ ")"
-  | Assign(v, e) -> "Assign([Name('" ^ v ^ "'), Store()], " ^  string_of_expr e ^ ")"
+  | Assign(v, e) -> (if List.exists (fun x -> x = v) attributes then
+      "Assign([Attribute(Name('self', Load()), '" ^ v ^ "', Store())], "  else
+      "Assign([Name('" ^ v ^ "'), Store()], ") ^  string_of_expr e ^ ")"
   | Call(f, el) ->
-    "Expr(Call(Attribute(Name('self', Load()), '" ^ f ^ "', Load()), [" ^ String.concat ", " (List.map string_of_expr el) ^ "], [], None, None))"
+    "Call(Attribute(Name('self', Load()), '" ^ f ^ "', Load()), [" ^ String.concat ", " (List.map string_of_expr el) ^ "], [], None, None)"
   | Noexpr -> ""
-
-(*
-let string_of_boolop boolop =
-  "BoolOp(" ^ 
-    (match boolop.bop with
-        And -> "And()"
-      | Or -> "Or()") ^ ", [" ^ string_of_expr boolop.left ^ ", " ^ string_of_expr boolop.right ^ "])"
-*)
 
 let string_of_compare compare = 
   "Compare(" ^ string_of_expr compare.left ^ ", [" ^ 
@@ -119,11 +117,6 @@ let string_of_compare compare =
 
 let build_compare = function
   | Binop(e1, o, e2) -> { left=e1; cmpop=o; right = e2 }
-
-(*
-let build_boolop = function
-  | Binop(e1, o, e2) -> { boolop=o; left=e1; left=e2 }
-*)
 
 let rec string_of_stmt = function
     Block(stmts) ->
@@ -175,37 +168,18 @@ let string_of_program nodes =
 
 let v = VarDecl(StringType, "x", StringLiteral("mesg"))
 let f = { return_type = VoidType; fname = "sayhi"; formals = [Formal(StringType, "mesg")]; locals = []; body = [Print(Id("mesg"))] }
-let n = [{ nname="hi"; args=[]; local_vars=[]; compute=[Expr(Call("sayhi", [StringLiteral("hi")]))]; functions=[f]}]
+let n = [{ nname="hi"; args=[]; local_vars=[VarDecl(IntType, "x", IntLiteral(1))]; compute=[Expr(Call("sayhi", [StringLiteral("hi")]))]; functions=[f]}]
 
 (*
-"""class hi():\n    def compute(self):\n        self.sayhi()\n\n    def sayhi(self):\n        print 'hi'"""
+a = """class hi():\n\n    def compute(self):\n        self.x = 1\n        print self.x"""
 
 class hi():
+
     def compute(self):
-        self.sayhi()
+        self.x = 1
+        print self.x
 
-    def sayhi(self):
-        print 'hi'
-
-"Module([ClassDef('hi', [], 
-  [FunctionDef('compute', arguments([Name('self', Param())], None, None, []), [Expr(Call(Attribute(Name('self', Load()), 'sayhi', Load()), [], [], None, None))], []), 
-  FunctionDef('sayhi', arguments([Name('self', Param())], None, None, []), [Print(None, [Str('hi')], True)], [])], [])])"
-*)
-
-(*
-"""class hi():\n    def compute(self):\n        self.sayhi('hi')\n\n    def sayhi(self, mesg):\n        print mesg\nhi().compute()"""
-
-class hi():
-    def compute(self):
-        self.sayhi('hi')
-
-    def sayhi(self, mesg):
-        print mesg
-
-hi().compute()
-
-"Module([ClassDef('hi', [], 
-[FunctionDef('compute', arguments([Name('self', Param())], None, None, []), [Expr(Call(Attribute(Name('self', Load()), 'sayhi', Load()), [Str('hi')], [], None, None))], []), FunctionDef('sayhi', arguments([Name('self', Param()), Name('mesg', Param())], None, None, []), [Print(None, [Name('mesg', Load())], True)], [])], []), Expr(Call(Attribute(Call(Name('hi', Load()), [], [], None, None), 'compute', Load()), [], [], None, None))])"
+"Module([ClassDef('hi', [], [FunctionDef('compute', arguments([Name('self', Param())], None, None, []), [Assign([Attribute(Name('self', Load()), 'x', Store())], Num(1)), Print(None, [Attribute(Name('self', Load()), 'x', Load())], True)], [])], [])])"
 *)
 
 (*"

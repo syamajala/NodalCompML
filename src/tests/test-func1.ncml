@@ -1,5 +1,5 @@
 node test() {
-  int fun add(a, b) {
+  fun int add(a, b) {
     return a + b;
   } 
 
