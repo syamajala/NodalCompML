@@ -1,5 +1,5 @@
 node test() {
-  int a = 42;
+  int a = 4;
   //a = 42;
   print a;
 }

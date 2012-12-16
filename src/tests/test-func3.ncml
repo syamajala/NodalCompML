@@ -1,5 +1,5 @@
 node test() {
-  fun printem(a,b,c,d) {
+  fun void printem(int a, int b, int c, int d) {
     print a;
     print b;
     print c;
