@@ -1,5 +1,5 @@
 /* Bug noticed by Pin-Chin Huang */
-node main() {
+node test() {
   int fun func(x, y) {
       return 0;
   }

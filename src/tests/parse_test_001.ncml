@@ -1,4 +1,4 @@
-node blur (float strength, int img) {
+node test (float strength, int img) {
   // start variable declaration region
   float pi = 3.14;
   string swap = "sucks";

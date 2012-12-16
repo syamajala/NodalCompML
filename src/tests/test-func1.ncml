@@ -1,4 +1,4 @@
-node main() {
+node test() {
   int fun add(a, b) {
     return a + b;
   } 
