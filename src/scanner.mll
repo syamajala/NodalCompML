@@ -57,7 +57,7 @@ rule token = parse
 	| ';' {SEMI}
 	| "\'" {QUOTE} 	| "\"" {DQUOTE}
 	| identifier as lit {ID(lit)}
-	| eof { raise Eof }
+	| eof { EOF }
 	| _ as char {raise (Failure("illegal character: " 
 					^ Char.escaped char))}
 

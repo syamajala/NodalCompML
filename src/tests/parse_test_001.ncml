@@ -1,9 +1,18 @@
 node blur (float strength, int img) {
+  // start variable declaration region
   float pi = 3.14;
   string swap = "sucks";
-  fun int bpixarea (int region) { 
+  // end variable declaration region
+
+  // start function declaration region
+  fun int bpixarea (int region) {
     region = region * strength;
   }
+  // end function declaration region
+
+  // expression region
   img_region = img + 42;
   return bpixarea(img_region);
+  // end expression region
 }
+

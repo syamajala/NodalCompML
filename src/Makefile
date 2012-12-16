@@ -7,7 +7,7 @@ OUTPUTS=ncml *.cmo *.cmi *.mli *~ scanner.ml parser.ml
 all: ncml
 
 ncml: parser.cmo ast.cmo scanner.cmo ncml.cmo
-	$(CC) -o ncml scanner.cmo parser.cmo ncml.cmo
+	$(CC) -o ncml ast.cmo scanner.cmo parser.cmo ncml.cmo
 
 parser.cmo: parser.ml
 	$(CC) -c parser.ml
