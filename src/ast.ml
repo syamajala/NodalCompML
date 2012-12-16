@@ -86,7 +86,11 @@ let rec string_of_expr = function
         | Lt -> "Lt()"
         | Leq -> "LtE()"
         | Gt -> "Gt()"
-        | Geq -> "GtE()") ^ "], [" ^ string_of_expr e2 ^ "])")
+        | Geq -> "GtE()") ^ "], [" ^ string_of_expr e2 ^ "])"
+      |And|Or -> "BoolOp(" ^
+        (match o with
+	| And -> "And()"
+        | Or -> "Or()") ^ string_of_expr e1 ^ ", " ^ string_of_expr e2 ^ "]" )
   | Unop(o, e1) ->
     "UnaryOp(" ^
       (match o with
