@@ -2,7 +2,7 @@ LEX=ocamllex
 YACC=ocamlyacc
 CC=ocamlc
 
-OUTPUTS=ncml *.cmo *.cmi *.mli *~ scanner.ml parser.ml *.out *.diff *.log IR.py
+OUTPUTS=ncml *.cmo *.cmi *.mli *~ scanner.ml parser.ml *.out *.diff *.log IR.py tests/IR.py tests/IR.py~
 
 all: ncml
 

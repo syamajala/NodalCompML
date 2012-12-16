@@ -63,7 +63,7 @@ type node = {
 
 type program = node list
 
-let attributes = []
+let attributesref = ref []
 
 let rec string_of_expr = function
     CharLiteral(l) -> "Str('" ^ Char.escaped(l) ^ "')"
@@ -71,7 +71,7 @@ let rec string_of_expr = function
   | IntLiteral(l) -> "Num(" ^ string_of_int(l) ^ ")"
   | FloatLiteral(l) -> "Num(" ^ string_of_float(l) ^ ")"
   | BoolLiteral(l) -> "Bool(" ^ string_of_bool(l) ^ ")"
-  | Id(s) -> (if List.exists (fun x -> x = s) attributes then
+  | Id(s) -> (if List.mem s !attributesref then
       "Attribute(Name('self', Load()), '" else
       "Name('") ^ s ^ "', Load())"
   | Binop(e1, o, e2) ->
@@ -100,7 +100,7 @@ let rec string_of_expr = function
       (match o with
         Not -> "Not()"
         | Neg -> "USub()")  ^ string_of_expr e1 ^ ")"
-  | Assign(v, e) -> (if List.exists (fun x -> x = v) attributes then
+  | Assign(v, e) -> (if List.mem v !attributesref then
       "Assign([Attribute(Name('self', Load()), '" ^ v ^ "', Store())], "  else
       "Assign([Name('" ^ v ^ "'), Store()], ") ^  string_of_expr e ^ ")"
   | Call(f, el) ->
@@ -151,13 +151,17 @@ let string_of_fdecl fdecl =
   "FunctionDef('" ^ fdecl.fname ^ "', arguments([Name('self', Param())" ^ 
     (if fdecl.formals = [] then "]" else
       (List.fold_left (fun x y -> x ^ ", " ^ y) "" (List.map (fun x -> "Name('" ^ string_of_formal x ^ "', Param())") fdecl.formals) ^ "]")) ^ ", None, None, []), [" 
-     ^ (String.concat ", " (List.map string_of_vdecl fdecl.locals))  
+     ^ (if fdecl.locals = [] then "" else (String.concat ", " (List.map string_of_vdecl fdecl.locals))  ^ ", ") 
      ^ (String.concat ", " (List.map string_of_stmt fdecl.body)) ^ "], [])"
 
+let string_of_node_vars = function
+  | VarDecl(t, v, e) -> v
+
 let string_of_compute n = 
-  string_of_fdecl ({ return_type = VoidType; fname = "compute"; formals = n.args; locals = []; body = n.compute })
+  string_of_fdecl ({ return_type = VoidType; fname = "compute"; formals = n.args; locals = n.local_vars; body = n.compute })
 
 let string_of_node ndecl = 
+  attributesref := (List.map string_of_node_vars ndecl.local_vars);
   "ClassDef('" ^ ndecl.nname ^ "', [], " ^ "[" ^ string_of_compute ndecl ^ ", " ^ String.concat ", " (List.map string_of_fdecl ndecl.functions) ^ "], [])"
 
 (* this is kinda bad, because it can only handle one node right now, and does no forwarding *)
@@ -180,6 +184,26 @@ class hi():
         print self.x
 
 "Module([ClassDef('hi', [], [FunctionDef('compute', arguments([Name('self', Param())], None, None, []), [Assign([Attribute(Name('self', Load()), 'x', Store())], Num(1)), Print(None, [Attribute(Name('self', Load()), 'x', Load())], True)], [])], [])])"
+*)
+
+(*
+a = """class test():\n    def compute(self):\n        print self.fib(3)\n\n    def fib(self, x):\n        if (x < 2):\n            return 1\n        return self.fib(x-1)+self.fib(x-2)\n\ndef main():\n    test().compute()\n\nmain()"""
+
+class test():
+    def compute(self):
+        print self.fib(3)
+
+    def fib(self, x):
+        if (x < 2):
+            return 1
+        return self.fib(x-1)+self.fib(x-2)
+
+def main():
+    test().compute()
+
+main()
+
+"Module([ClassDef('test', [], [FunctionDef('compute', arguments([Name('self', Param())], None, None, []), [Print(None, [Call(Attribute(Name('self', Load()), 'fib', Load()), [Num(3)], [], None, None)], True)], []), FunctionDef('fib', arguments([Name('self', Param()), Name('x', Param())], None, None, []), [If(Compare(Name('x', Load()), [Lt()], [Num(2)]), [Return(Num(1))], []), Return(BinOp(Call(Attribute(Name('self', Load()), 'fib', Load()), [BinOp(Name('x', Load()), Sub(), Num(1))], [], None, None), Add(), Call(Attribute(Name('self', Load()), 'fib', Load()), [BinOp(Name('x', Load()), Sub(), Num(2))], [], None, None)))], [])], []), FunctionDef('main', arguments([], None, None, []), [Expr(Call(Attribute(Call(Name('test', Load()), [], [], None, None), 'compute', Load()), [], [], None, None))], []), Expr(Call(Name('main', Load()), [], [], None, None))])"
 *)
 
 (*"
