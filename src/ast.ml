@@ -63,6 +63,8 @@ type node = {
 
 type program = node list
 
+
+(*
 let attributesref = ref []
 
 let rec string_of_expr = function
@@ -173,6 +175,22 @@ let string_of_program nodes =
 let v = VarDecl(StringType, "x", StringLiteral("mesg"))
 let f = { return_type = VoidType; fname = "sayhi"; formals = [Formal(StringType, "mesg")]; locals = []; body = [Print(Id("mesg"))] }
 let n = [{ nname="hi"; args=[]; local_vars=[VarDecl(IntType, "x", IntLiteral(1))]; compute=[Expr(Call("sayhi", [StringLiteral("hi")]))]; functions=[f]}]
+
+  *)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 (*
 a = """class hi():\n\n    def compute(self):\n        self.x = 1\n        print self.x"""

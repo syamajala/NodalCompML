@@ -47,8 +47,9 @@ rule token = parse
 	| '%' {MOD}
 	| "+=" {PLUSEQ}	| "-=" {MINUSEQ}
 	| "*=" {TIMESEQ}| "/=" {DIVEQ}
+	| "==" {EQ}
 	| '=' {ASSIGN}
-	| "==" {EQ}	| "!=" {NEQ}
+	| "!=" {NEQ}
 	| '<' {LT}	| '>' {GT}
 	| "<=" {LEQ}	| ">=" {GEQ}
 	| '!' {NOT}

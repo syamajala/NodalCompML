@@ -1,4 +1,4 @@
-node test() {
+node start() {
   print 1 + 2;
   print 1 - 2;
   print 1 * 2;

@@ -1,0 +1,14 @@
+node start() {
+     int a = 42;
+     float b = 3.14;
+     
+     if (4 > 2) {
+       print b;
+     }
+
+     if ((5%4) == 1) {
+       print 666;
+     }
+
+     print a;
+}

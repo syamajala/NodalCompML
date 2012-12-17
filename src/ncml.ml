@@ -1,7 +1,8 @@
 open Ast
+open Generator
 
 (* file: main.ml *)
-let main () =
+(* let main () =
   try
     let source = open_in Sys.argv.(1) in
     let lexbuf = Lexing.from_channel source in
@@ -16,7 +17,22 @@ let main () =
     match compile_result with
 	0 -> "success!"
       | _ -> "error python ast compilation.";
-  with Scanner.Eof -> "end of file input."
+  with Scanner.Eof -> "end of file input." *)
       
-let _ = main()
+let main_gen () =
+  try
+    let source = open_in Sys.argv.(1) in
+    let lexbuf = Lexing.from_channel source in
+    let result = Parser.program Scanner.token lexbuf in
+    let python_source_code = (str_of_program result) in
+    let dest = open_out "IR.py" in
+    output_string dest python_source_code;
+    close_out dest;
+    let compile_result = Sys.command "python IR.py" in
+    match compile_result with
+	0 -> "success!"
+      | _ -> "error in python code compilation";
+  with Scanner.Eof -> "end of file input."
+
+let _ = main_gen()
 

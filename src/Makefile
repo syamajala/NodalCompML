@@ -7,8 +7,11 @@ OUTPUTS=ncml *.cmo *.cmi *.mli *~ scanner.ml parser.ml *.out *.diff *.log IR.py 
 
 all: ncml
 
-ncml: parser.cmo ast.cmo scanner.cmo ncml.cmo
-	$(CC) -o ncml ast.cmo scanner.cmo parser.cmo ncml.cmo
+ncml: parser.cmo ast.cmo generator.cmo scanner.cmo ncml.cmo
+	$(CC) -o ncml ast.cmo generator.cmo scanner.cmo parser.cmo ncml.cmo
+
+generator.cmo: generator.ml
+	$(CC) -c generator.ml
 
 parser.cmo: parser.ml
 	$(CC) -c parser.ml
