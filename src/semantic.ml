@@ -18,7 +18,7 @@ let print_var (var:Sast.var_decl) =
 let print_node node = 
 	let name = node.node_name in print_string name
 
-let find_node_var env (node_name : string) var_name = 
+let find_node_var env (node_name : string) var_name =
 	let node = List.find (fun n -> n.node_name = node_name) env.nodes
 	in let locals = node.nlocals
 	in try
@@ -324,9 +324,15 @@ let add_param (node : Sast.node_decl) (param : Ast.formal) =
 let add_local env node var = 
 	let Ast.VarDecl(typ, name, e) = var in
 	print_string("\nadding local: " ^ name);
-	let (_, t) = expr env node e
+	let scope = {
+		env.scope with vars = node.nlocals
+	} in
+	let env = {
+		env with scope = scope
+	}
+	in let (_, t) = expr env node e
 	in if (t != typ) then 
-		raise (Failure ("type mismatch"))
+		raise (Failure ("type error when initializing id " ^ name))
 	else
 		let var_list = (name, typ) :: node.nlocals
 		in  {
@@ -351,7 +357,7 @@ let add_node env (node : Ast.node) =
 			unchecked_body = [];
 			helper_funcs = [];
 		} in let new_node = List.fold_left add_param new_node (List.rev node.args) 
-		in let new_node = List.fold_left (add_local env) new_node (List.rev node.local_vars) 
+		in let new_node = List.fold_left (add_local env) new_node (node.local_vars) 
 		in 
 		print_string("\nAdded locals to node: ");
 		List.iter print_var new_node.nlocals;
@@ -400,6 +406,9 @@ let check program =
 		print_string("\nFinished first pass through nodes");
 		print_string("\nNode List: ");
 		List.iter print_node global_env.nodes;
-		List.fold_left check_node global_env global_env.nodes;
-		print_string("\n\nFinished semantic analysis\n\n")
+		if (List.exists (fun n -> n.node_name = "start") global_env.nodes) then
+			List.fold_left check_node global_env global_env.nodes
+		else
+			raise (Failure ("No start node found"));
+
 
