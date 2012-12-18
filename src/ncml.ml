@@ -1,4 +1,7 @@
+open Printf
 open Ast
+open Sast
+open Semantic
 open Generator
 
 (* file: main.ml *)
@@ -24,6 +27,7 @@ let main_gen () =
     let source = open_in Sys.argv.(1) in
     let lexbuf = Lexing.from_channel source in
     let result = Parser.program Scanner.token lexbuf in
+	let _ = Semantic.check(result) in
     let python_source_code = (str_of_program result) in
     let dest = open_out "IR.py" in
     output_string dest python_source_code;
