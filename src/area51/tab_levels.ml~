@@ -1,0 +1,4 @@
+let bool_list = [true;false;false;true];;
+
+let tab_level = "\t\t";;
+
