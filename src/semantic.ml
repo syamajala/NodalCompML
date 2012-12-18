@@ -108,17 +108,27 @@ let rec expr env node = function
 					if (t1 = t2) then Sast.Assign(name, e), t1
 					else raise (Failure ("Type mismatch in assignment"))
 	| Ast.Call (func_name, params) ->
-		let func =
+		print_string("\nFunction call");
+			let args = List.map (fun s -> expr env node s) params in
+				let fdecl = find_func env.scope func_name in
+					let types = List.rev (List.map (fun (_, typ) -> typ) (List.rev fdecl.fparams))
+						in try
+							Sast.Call(fdecl.func_name, List.map2 same_type types args), fdecl.ret_type
+							with Invalid_argument(x) ->
+								raise (Failure("Invalid number of arguments"))
+(*		let func =
 			try 
-				List.find (fun f -> f.func_name = func_name) env.scope.funcs
+				List.find (fun f -> f.func_name = func_name) env.scope.funcs;
 			with Not_found ->
 				raise (Failure ("undeclared identifier " ^ func_name))
 		in
+			print_string("\nfunc in scope");
 			let typed_params = List.map (expr env node) params in
 			let types = List.map (fun e_type -> snd e_type) typed_params in
 				try
 					Sast.Call (func.func_name, List.map2 same_type types typed_params), func.ret_type
 				with Invalid_argument(x) -> raise (Failure("Invalid number of args"))
+*)
 
 let rec stmt env node = function
 	| Ast.Block(s1) ->
