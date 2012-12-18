@@ -27,6 +27,7 @@ type stmt =
   | If of expr * stmt * stmt
   | For of expr * expr * expr * stmt
   | While of expr * stmt
+  | Forward of expr list * string
   | Print of expr
   | Continue
   | Break

@@ -47,6 +47,7 @@ let rec str_of_stmt = function
   | If(e, s1, s2) -> "if (" ^ str_of_expr e ^ "):\n\t\t\t " ^ str_of_stmt s1 ^ "\n\t\t else:\n\t\t\t " ^ str_of_stmt s2
   | For(e1, e2, e3, s) -> str_of_expr e1 ^ "\n\t\t " ^ "while(" ^ str_of_expr e2 ^ "):\n\t\t\t " ^ str_of_stmt s ^ "\n\t\t\t " ^ str_of_expr e3
   | While(e, s) -> "\n\t\t " ^ "while(" ^ str_of_expr e ^ "):\n\t\t\t " ^ str_of_stmt s
+  | Forward(elist, dest) -> "\n\t\t " ^ "forward('" ^ dest ^ "', [" ^ (String.concat "," (List.map str_of_expr elist)) ^ "])"
   | Print(expr) -> "print " ^ (str_of_expr expr)
   | Break -> "break"
   | Continue -> "continue"
@@ -77,6 +78,8 @@ let str_of_node ndecl =
 ^
 (str_of_compute ndecl)
 
+let node_key_value ndecl =
+  "'" ^ ndecl.nname ^ "':" ^ ndecl.nname ^ "()"
 
 let str_of_program nodes =
 let res = 
@@ -85,24 +88,19 @@ let res =
 
 def main():
 \t global nodes
-\t nodes = { 'start': start(), 'node1': node1(), 'node2': node2() }
+\t nodes = { "
+^ 
+(String.concat ", " (List.map node_key_value nodes))
+^" }
 # kick off the calculation by calling all start nodes' compute functions.
 # using one start node for now...
 \t nodes['start'].compute()
 
 "
 ^
-(String.concat "\n" (List.map str_of_node nodes))
+(String.concat "\n\n" (List.map str_of_node nodes))
 ^
 "
-class node1():
-\t def compute(self):
-\t\t forward('node2', [\"hi\"])
-
-class node2():
-\t def compute(self, arg1):
-\t\t print arg1
-
 
 main()
 " in

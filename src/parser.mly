@@ -111,7 +111,7 @@ stmt:
           | RETURN expr SEMI      { Return($2) }
           | RETURN SEMI           { Return(Noexpr) }
 	  | PRINT expr SEMI	  { Print($2) }
-	    /*FORWARD*/
+	  | FORWARD actual_list TO ID SEMI { Forward($2, $4) }
 
 formal_list_opt:
         /*empty*/                 { [] }

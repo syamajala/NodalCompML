@@ -1,8 +1,15 @@
 node start() {
   int i = 5;
+
+  fun int dec(int i) {
+    return i-1;
+  }
+
   while (i > 0) {
     print i;
-    i = i - 1;
+    i = dec(i);
   }
+
   print 42;
+  print i;
 }
