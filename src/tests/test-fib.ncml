@@ -1,4 +1,4 @@
-node test() {
+node start() {
   
   fun int fib(int x) {
     if (x < 2) {

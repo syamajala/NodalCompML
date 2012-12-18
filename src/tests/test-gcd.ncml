@@ -1,6 +1,6 @@
 
 //this one will fail, need to fix the if-else parsing.
-node test() {
+node start() {
   fun int gcd(int a, int b) {
     while (a != b) {
       if (a > b) a = a - b;

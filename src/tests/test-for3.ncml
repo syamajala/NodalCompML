@@ -1,0 +1,10 @@
+node start() {
+  int i = 0;
+
+  fun void foo() {
+    for (i = 0 ; i < 10 ; i = i + 1) {
+      print i;
+    }
+  }
+  print 42;
+}

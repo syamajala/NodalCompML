@@ -1,11 +1,11 @@
-node test() {
-  fun int fib() {
+node start() {
+  fun int if_in_func() {
     if (3 > 1) {
       print 1;
     }
     return 666;
   }
 
-  fib();
+  if_in_func();
 
 }

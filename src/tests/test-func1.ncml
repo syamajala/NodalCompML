@@ -1,4 +1,4 @@
-node test() {
+node start() {
   int a = 0;
 
   fun int add(int a, int b) {

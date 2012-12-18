@@ -1,12 +1,12 @@
 // Bug noticed by Pin-Chin Huang
-node test() {
+node start() {
   int i = 1;
 
   fun int func(int x, int y) {
       return 0;
   }
 
-  //func(i = 2, i = i+1);
+  func(i = 2, i = i+1);
   print i;
 }
 

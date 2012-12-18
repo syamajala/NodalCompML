@@ -31,16 +31,16 @@ let rec str_of_expr = function
     (match o with
 	Not -> "not" | Neg -> "-") ^ str_of_expr e
   | Assign(v, e) -> v ^ " = " ^ (str_of_expr e)
-  | Call(f, e) -> f ^ "(" ^ (String.concat ", " (List.map str_of_expr e)) ^ ")"
+  | Call(f, e) -> "self." ^ f ^ "(" ^ (String.concat ", " (List.map str_of_expr e)) ^ ")"
   | Noexpr -> ""
 
 let rec str_of_stmt = function
-  | Block(stmts) -> (String.concat "\n\t\t " (List.map str_of_stmt stmts))
+  | Block(stmts) -> (String.concat "\t\t " (List.map str_of_stmt stmts))
   | Expr(expr) -> str_of_expr expr;
   | Return(expr) -> "return " ^ str_of_expr expr
   | If(e, s, _) -> "if (" ^ str_of_expr e ^ "):\n\t\t\t " ^ str_of_stmt s
   | If(e, s1, s2) -> "if (" ^ str_of_expr e ^ "):\n\t\t\t " ^ str_of_stmt s1 ^ "\n\t\t else:\n\t\t\t " ^ str_of_stmt s2
-  | For(e1, e2, e3, s) -> "<<for>>"
+  | For(e1, e2, e3, s) -> str_of_expr e1 ^ "\n\t\t " ^ "while(" ^ str_of_expr e2 ^ "):\n\t\t\t " ^ str_of_stmt s ^ "\n\t\t\t " ^ str_of_expr e3
   | While(e, s) -> "<<while>>"
   | Print(expr) -> "print " ^ (str_of_expr expr)
   | Break -> "break"
@@ -61,7 +61,7 @@ let str_of_fdecl fdecl =
 "\t\t " ^ (String.concat "\n\t\t " (List.map str_of_stmt fdecl.body))
 
 let str_of_compute ndecl = 
-  str_of_fdecl ({ return_type = VoidType; fname = "compute"; formals = ndecl.args; locals = ndecl.local_vars; body = ndecl.compute })
+  str_of_fdecl ({ return_type = VoidType; fname = "compute"; formals = ndecl.args; locals = []; body = ndecl.compute })
 
 let str_of_node ndecl =
 "class " ^ ndecl.nname ^ "(): # node name\n"

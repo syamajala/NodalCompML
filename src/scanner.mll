@@ -23,8 +23,8 @@ rule token = parse
 	| "void" {VOID}
 	| digit+ as lit {LCONST(int_of_string lit)}
 	| (digit*'.'digit+) | (digit+'.'digit*) as lit {DCONST(float_of_string lit)}
-	| "\'"(letter | digit | symbol)"\'" as lit {(print_endline "hit single quotes\n"); flush stdout; CCONST(lit.[1])} (* not sure*)
-	| "\""(letter | digit | symbol)*"\"" as lit {(print_endline "hit double quotes\n"); flush stdout;SCONST(lit)} (* not sure *)
+	| "\'"(letter | digit | symbol)"\'" as lit {CCONST(lit.[1])} (* not sure*)
+	| "\""(letter | digit | symbol)*"\"" as lit {SCONST(lit)} (* not sure *)
 	| bool_value as lit {BCONST(bool_of_string lit)}
 	(*| "null" {NULL} (* we may want this *) *)
 	| "break" {BREAK}	(* keywords *)

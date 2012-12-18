@@ -1,4 +1,4 @@
-node test() {
+node start() {
   fun void printem(int a, int b, int c, int d) {
     print a;
     print b;
