@@ -33,11 +33,12 @@ and stmt =
 and var_decl = string * dtype
 
 and func_decl = {
-	return_type : dtype;
-	fname : string;
-	params : (string * dtype) list;
-	locals : (string * dtype) list;
-	body : stmt list;
+	ret_type : dtype;
+	func_name : string;
+	fparams : (string * dtype) list;
+	flocals : (string * dtype) list;
+	fbody : stmt list;
+	unchecked_fbody : (Ast.stmt) list;
 }
 
 and node_decl = {

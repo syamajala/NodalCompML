@@ -18,16 +18,6 @@ let print_var (var:Sast.var_decl) =
 let print_node node = 
 	let name = node.node_name in print_string name
 
-let find_node_var env (node_name : string) var_name =
-	let node = List.find (fun n -> n.node_name = node_name) env.nodes
-	in let locals = node.nlocals
-	in try
-		print_string ("\nCheck locals of node " ^ node_name ^ " ");
-		List.iter print_var locals;
-		List.find (fun (name, _) -> name = var_name) locals
-	with Not_found ->
-		raise (Failure("variable " ^ var_name ^ " not defined"))
-
 let rec find_var env scope node name = 
 	try
 		print_string("\nCheck vars in scope: ");
@@ -36,11 +26,11 @@ let rec find_var env scope node name =
 	with Not_found ->
 		match scope.parent with
 			| Some(parent) -> find_var env parent node name
-			| _ -> find_node_var env node.node_name name
+			| _ -> raise (Failure("Variable " ^ name ^ " not in scope"))
 
 let rec find_func (scope : symbol_table) name = 
 	try 
-		List.find (fun f -> f.fname = name) scope.funcs
+		List.find (fun f -> f.func_name = name) scope.funcs
 	with Not_found ->
 		match scope.parent with
 			| Some(parent) -> find_func parent name
@@ -120,14 +110,14 @@ let rec expr env node = function
 	| Ast.Call (func_name, params) ->
 		let func =
 			try 
-				List.find (fun f -> f.fname = func_name) env.scope.funcs
+				List.find (fun f -> f.func_name = func_name) env.scope.funcs
 			with Not_found ->
 				raise (Failure ("undeclared identifier " ^ func_name))
 		in
 			let typed_params = List.map (expr env node) params in
 			let types = List.map (fun e_type -> snd e_type) typed_params in
 				try
-					Sast.Call (func.fname, List.map2 same_type types typed_params), func.return_type
+					Sast.Call (func.func_name, List.map2 same_type types typed_params), func.ret_type
 				with Invalid_argument(x) -> raise (Failure("Invalid number of args"))
 
 let rec stmt env node = function
@@ -309,6 +299,7 @@ let check program =
 let node_exists nodes name = 
 	List.exists (fun n -> n.node_name = name) nodes
 
+(*can remove scope stuff*)
 let add_param env node param = 
 	let Ast.Formal(typ, name) = param
 	in let params = (name, typ) :: node.nparams
@@ -323,6 +314,8 @@ let add_param env node param =
 		node with nparams = params
 	}
 
+
+(* put in redefinition checks *)
 let add_local env node var = 
 	let Ast.VarDecl(typ, name, e) = var in
 	print_string("\nadding local: " ^ name);
@@ -348,6 +341,56 @@ let add_compute (env:env) node s =
 		node with unchecked_body = stmts
 	}
 
+let add_func_param func param = 
+	let Ast.Formal(typ, name) = param
+	in let params = (name, typ) :: func.fparams
+	in {
+		func with fparams = params
+	}
+
+(*redef checks*)
+let add_func_local env node func var = 
+	let Ast.VarDecl(typ, name, e) = var
+	in let scope = {
+		env.scope with vars = func.fparams @ func.flocals;
+	} 
+	in let env = {
+		env with scope = scope
+	}
+	in let (_, t) = expr env node e
+	in if (t != typ) then
+		raise (Failure ("type error when initializing id " ^ name))
+	else
+		let var_list = (name, typ) :: func.flocals
+	in {
+		func with flocals = var_list
+	}
+
+let add_func_body func s =
+	let stmts = s :: func.unchecked_fbody
+	in {
+		func with unchecked_fbody = stmts
+	}
+
+(* put in redefinition checks *)
+let add_func env node f = 
+	let func = {
+		ret_type = f.return_type;
+		func_name = f.fname;
+		fparams = [];
+		flocals = [];
+		fbody = [];
+		unchecked_fbody = [];
+	}  
+		in let func = List.fold_left add_func_param func f.formals
+		in let func = List.fold_left (add_func_local env node) func f.locals
+		in let func = List.fold_left add_func_body func f.body
+		in let funcs = func :: node.helper_funcs
+		in {
+			node with helper_funcs = funcs
+		}
+		
+
 let add_node env (node : Ast.node) =
 	if (node_exists env.nodes node.nname) then 
 		raise (Failure ("Node with name " ^ node.nname ^ " already exists"))
@@ -365,18 +408,57 @@ let add_node env (node : Ast.node) =
 		print_string("\nAdded locals to node: ");
 		List.iter print_var new_node.nlocals;
 		let new_node = List.fold_left (add_compute env) new_node (List.rev node.compute)	
-(*		in let new_node = List.fold_left add_func new_node (List.rev node.functions) *)
+		in let new_node = List.fold_left (add_func env) new_node (List.rev node.functions) 
 		in let new_nodes = (new_node :: env.nodes)
 		in {
 			env with nodes = new_nodes
 		}
 
-let check_compute (env:env) node s =
-	let s = stmt env node s in
-	let stmts = s :: node.nbody
+let check_func_body env node func s = 
+	let scope = {
+		parent = None;
+		vars = func.fparams @ func.flocals;
+		funcs = node.helper_funcs;
+	}
+	in let env = {
+		env with scope = scope
+	}
+	in let s = stmt env node s in
+	let stmts = s :: func.fbody
 	in {
+		func with fbody = stmts
+	}
+
+let check_func env node func = 
+	let new_func = {
+		ret_type = func.ret_type;
+		func_name = func.func_name;
+		fparams = func.fparams;
+		flocals = func.flocals;
+		fbody = [];
+		unchecked_fbody = func.unchecked_fbody;
+	}
+	in let func = List.fold_left (check_func_body env node) new_func func.unchecked_fbody
+	in let func_list = func :: node.helper_funcs
+	in {
+		node with helper_funcs = func_list
+	}
+
+let check_compute (env:env) node s =
+	let scope = {
+		parent = None;
+		vars = node.nparams @ node.nlocals;
+		funcs = node.helper_funcs;
+	}
+	in let env = {
+		env with scope = scope
+	}
+	in let s = stmt env node s in
+	let stmts = s :: node.nbody
+	in let node = {
 		node with nbody = stmts
 	}
+	in List.fold_left (check_func env) node node.helper_funcs
 
 let check_node env (node:Sast.node_decl) =
 	print_string("\nChecking compute function"); 
