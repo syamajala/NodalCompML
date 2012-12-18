@@ -132,14 +132,8 @@ let rec expr env node = function
 
 let rec stmt env node = function
 	| Ast.Block(s1) ->
-		let block_scope = { env.scope with 
-			parent = Some(env.scope);
-			vars = []; }
-		in 
-			let block_env = { env with
-				scope = block_scope; } in
-				let s1 = List.map (fun s -> stmt block_env node s) s1
-				in Sast.Block(block_scope.vars, s1)
+			let s1 = List.map (fun s -> stmt env node s) s1
+				in Sast.Block(s1)
 	| Ast.Expr(e) -> Sast.Expr(expr env node e)
 	| Ast.Return(e) -> Sast.Return(expr env node e)
 	| Ast.If(e, s1, s2) ->
@@ -162,6 +156,7 @@ let rec stmt env node = function
 				raise (Failure ("While condition must be boolean"))
 	| Ast.Print (e) -> 
 		let e = expr env node e in Sast.Print(e)
+	| Ast.Nostmt -> Sast.Nostmt
 	| _ -> raise (Failure ("Error"))
 
 
@@ -314,9 +309,16 @@ let check program =
 let node_exists nodes name = 
 	List.exists (fun n -> n.node_name = name) nodes
 
-let add_param (node : Sast.node_decl) (param : Ast.formal) = 
+let add_param env node param = 
 	let Ast.Formal(typ, name) = param
 	in let params = (name, typ) :: node.nparams
+	and scope_vars = (name, typ) :: env.scope.vars
+	in let scope = {
+		env.scope with vars = scope_vars
+	} in 
+	let _ = {
+		env with scope = scope
+	}
 	in {
 		node with nparams = params
 	}
@@ -324,8 +326,9 @@ let add_param (node : Sast.node_decl) (param : Ast.formal) =
 let add_local env node var = 
 	let Ast.VarDecl(typ, name, e) = var in
 	print_string("\nadding local: " ^ name);
-	let scope = {
-		env.scope with vars = node.nlocals
+	let scope_vars = node.nparams @ node.nlocals
+	in let scope = {
+		env.scope with vars = scope_vars
 	} in
 	let env = {
 		env with scope = scope
@@ -356,7 +359,7 @@ let add_node env (node : Ast.node) =
 			nbody = [];
 			unchecked_body = [];
 			helper_funcs = [];
-		} in let new_node = List.fold_left add_param new_node (List.rev node.args) 
+		} in let new_node = List.fold_left (add_param env) new_node (List.rev node.args) 
 		in let new_node = List.fold_left (add_local env) new_node (node.local_vars) 
 		in 
 		print_string("\nAdded locals to node: ");
@@ -391,6 +394,14 @@ let check_node env (node:Sast.node_decl) =
 		env with nodes = node_list
 	}
 
+let check_start_node node_list =
+	try
+		let start_node = List.find (fun n -> n.node_name = "start") node_list
+			in true
+			(* Do we want to check params here? *)
+	with Not_found ->
+		false
+
 let check program =
 	print_string("\nStarting semantic analysis\n"); 
 	let global_scope = {
@@ -406,9 +417,7 @@ let check program =
 		print_string("\nFinished first pass through nodes");
 		print_string("\nNode List: ");
 		List.iter print_node global_env.nodes;
-		if (List.exists (fun n -> n.node_name = "start") global_env.nodes) then
+		if (check_start_node global_env.nodes) then
 			List.fold_left check_node global_env global_env.nodes
 		else
-			raise (Failure ("No start node found"));
-
-
+			raise (Failure ("No start node found"))

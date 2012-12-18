@@ -16,13 +16,14 @@ type simple_expr =
 and expr = simple_expr * dtype
 
 and stmt = 
-	| Block of var_decl list * stmt list
+	| Block of stmt list
 	| Expr of expr
 	| Return of expr
 	| If of expr * stmt * stmt
 	| For of expr * expr * expr * stmt
 	| While of expr * stmt
-	| Print of expr 
+	| Print of expr
+	| Nostmt 
 
 (*and var_decl = {
 	vname : string;
