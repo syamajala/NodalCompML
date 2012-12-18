@@ -11,12 +11,17 @@ TODO:
 open Ast
 open Printf
 
+
+let str_of_bool = function
+  | true -> "True"
+  | false -> "False"
+
 let rec str_of_expr = function
   | CharLiteral(l) -> Char.escaped(l)
   | StringLiteral(l) -> l
   | IntLiteral(l) -> string_of_int(l)
   | FloatLiteral(l) -> string_of_float(l)
-  | BoolLiteral(l) -> string_of_bool(l)
+  | BoolLiteral(l) -> str_of_bool(l)
   | Id(s) -> s
   | Binop(e1, o, e2) ->
     str_of_expr e1 ^ " " ^

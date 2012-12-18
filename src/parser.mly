@@ -134,7 +134,7 @@ var_decl_list:
 	  | var_decl_list var_decl { $2 :: $1 }
 
 var_decl:
-           dtype ID ASSIGN expr SEMI      { print_endline("variable declared..."); flush stdout; VarDecl($1, $2, $4) }
+           dtype ID ASSIGN expr SEMI      { VarDecl($1, $2, $4) }
 
 expr:
 	  ID			  { Id($1) }
