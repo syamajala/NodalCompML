@@ -1,4 +1,5 @@
-node test() {
+node start() {
+  print "hello_world";
   print 42;
   print 71;
   print 1;

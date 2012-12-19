@@ -72,7 +72,7 @@ let str_of_compute ndecl =
 let str_of_node ndecl =
 "class " ^ ndecl.nname ^ "(): # node name\n"
 ^
-"\t " ^ (String.concat "\n\t " (List.map str_of_vdecl ndecl.local_vars)) ^ "\n"
+(String.concat "\n" (List.map str_of_vdecl ndecl.local_vars)) ^ "\n"
 ^
 (String.concat "\n" (List.map str_of_fdecl ndecl.functions)) ^ "\n"
 ^
@@ -104,4 +104,4 @@ def main():
 
 main()
 " in
-print_endline res; res
+(*print_endline res;*) res

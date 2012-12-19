@@ -102,8 +102,8 @@ compound_statement:
 stmt:
             expr SEMI                             { Expr($1) }
           | LBRACE compound_statement RBRACE  { Block($2) }
-          | IF LPAREN expr RPAREN stmt %prec NOELSE { print_endline("IF STATMENT HIT ELSELESS"); flush stdout;If($3, $5, Nostmt) }
-          | IF LPAREN expr RPAREN stmt ELSE stmt   { print_endline("IF ELSE HIT"); flush stdout; If($3, $5, $7) }
+          | IF LPAREN expr RPAREN stmt %prec NOELSE { (*print_endline("IF STATMENT HIT ELSELESS");*) flush stdout;If($3, $5, Nostmt) }
+          | IF LPAREN expr RPAREN stmt ELSE stmt   { (*print_endline("IF ELSE HIT"); flush stdout;*) If($3, $5, $7) }
           | WHILE LPAREN expr RPAREN stmt         { While($3, $5) }
           | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt  { For($3, $5, $7, $9) }
 	  | BREAK SEMI    { Break }
