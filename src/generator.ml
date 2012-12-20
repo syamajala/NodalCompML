@@ -11,6 +11,8 @@ TODO:
 open Ast
 open Printf
 
+let tab lvl =
+  String.make lvl '\t'
 
 let str_of_bool = function
   | true -> "True"
@@ -39,44 +41,47 @@ let rec str_of_expr = function
   | Call(f, e) -> "self." ^ f ^ "(" ^ (String.concat ", " (List.map str_of_expr e)) ^ ")"
   | Noexpr -> ""
 
-let rec str_of_stmt = function
-  | Block(stmts) -> (String.concat "\n\t\t\t " (List.map str_of_stmt stmts))
+let rec str_of_stmt s lvl =
+  match s with
+  | Block(stmts) -> (String.concat "\n" (List.map (fun x-> str_of_stmt x (lvl+1)) stmts))
   | Expr(expr) -> str_of_expr expr;
   | Return(expr) -> "return " ^ str_of_expr expr
-  | If(e, s, _) -> "if (" ^ str_of_expr e ^ "):\n\t\t\t " ^ str_of_stmt s
-  | If(e, s1, s2) -> "if (" ^ str_of_expr e ^ "):\n\t\t\t " ^ str_of_stmt s1 ^ "\n\t\t else:\n\t\t\t " ^ str_of_stmt s2
-  | For(e1, e2, e3, s) -> str_of_expr e1 ^ "\n\t\t " ^ "while(" ^ str_of_expr e2 ^ "):\n\t\t\t " ^ str_of_stmt s ^ "\n\t\t\t " ^ str_of_expr e3
-  | While(e, s) -> "\n\t\t " ^ "while(" ^ str_of_expr e ^ "):\n\t\t\t " ^ str_of_stmt s
-  | Forward(elist, dest) -> "\n\t\t " ^ "forward('" ^ dest ^ "', [" ^ (String.concat "," (List.map str_of_expr elist)) ^ "])"
+  | If(e, s, _) -> "if (" ^ str_of_expr e ^ "):\n" ^ (tab (lvl+1)) ^ str_of_stmt s (lvl+1)
+  | If(e, s1, s2) -> "if (" ^ str_of_expr e ^ "):\n" ^ (tab (lvl+1)) ^ str_of_stmt s1 (lvl+1) ^ "\n" ^ (tab lvl) ^ "else:\n" ^ (tab (lvl+1)) ^ str_of_stmt s2 (lvl+1)
+  | For(e1, e2, e3, s) -> str_of_expr e1 ^ "\n" ^ (tab lvl) ^ "while(" ^ str_of_expr e2 ^ "):\n" ^ (tab (lvl+1)) ^ str_of_stmt s (lvl+1) ^ "\n" ^ (tab (lvl+1)) ^ str_of_expr e3
+  | While(e, s) -> "\n" ^ (tab lvl) ^ "while(" ^ str_of_expr e ^ "):\n" ^ (tab (lvl+1)) ^ str_of_stmt s (lvl+1)
+  | Forward(elist, dest) -> "\n" ^ (tab lvl) ^ "forward('" ^ dest ^ "', [" ^ (String.concat "," (List.map str_of_expr elist)) ^ "])"
   | Print(expr) -> "print " ^ (str_of_expr expr)
   | Break -> "break"
   | Continue -> "continue"
   | Nostmt -> ""
 
-let str_of_vdecl = function
-  | VarDecl(t, v, e) -> str_of_expr (Assign(v, e))
+let str_of_vdecl v lvl = 
+  match v with
+  | VarDecl(t, v, e) -> (tab lvl) ^ (str_of_expr (Assign(v, e)))
 
 let str_of_formal = function
   | Formal(_, v) -> v
 
-let str_of_fdecl fdecl =
-"\t def " ^ fdecl.fname ^ "(self, " ^ (String.concat ", " (List.map str_of_formal fdecl.formals)) ^ "):\n"
-^
-"\t\t " ^ (String.concat "\n\t\t " (List.map str_of_vdecl fdecl.locals)) ^ "\n"
-^
-"\t\t " ^ (String.concat "\n\t\t " (List.map str_of_stmt fdecl.body))
+let str_of_fdecl fdecl lvl =
+  (tab lvl) ^ "def " ^ fdecl.fname ^ "(self" ^ 
+  (if fdecl.formals = [] then 
+      "" else
+      ", " ^ (String.concat ", " (List.map str_of_formal fdecl.formals))) 
+  ^ "):\n"
+  ^ (String.concat "\n" (List.map (fun x-> str_of_vdecl x (lvl+1)) fdecl.locals)) 
+  ^ "\n" ^ (tab (lvl+1)) ^ 
+    (let l = "\n"^(tab (lvl+1)) in
+    (String.concat l (List.map (fun x-> str_of_stmt x (lvl+1)) fdecl.body)))
 
 let str_of_compute ndecl = 
-  str_of_fdecl ({ return_type = VoidType; fname = "compute"; formals = ndecl.args; locals = ndecl.local_vars; body = ndecl.compute })
+  str_of_fdecl ({ return_type = VoidType; fname = "compute"; formals = ndecl.args; locals = ndecl.local_vars; body = ndecl.compute }) 1
 
 let str_of_node ndecl =
 "class " ^ ndecl.nname ^ "(): # node name\n"
-^
-(String.concat "\n" (List.map str_of_vdecl ndecl.local_vars)) ^ "\n"
-^
-(String.concat "\n" (List.map str_of_fdecl ndecl.functions)) ^ "\n"
-^
-(str_of_compute ndecl)
+ ^ (String.concat "\n" (List.map (fun x-> str_of_vdecl x 1) ndecl.local_vars)) ^ "\n" 
+  ^ (String.concat "\n" (List.map (fun x-> str_of_fdecl x 1) ndecl.functions)) ^ "\n\n"
+^ (str_of_compute ndecl)
 
 let node_key_value ndecl =
   "'" ^ ndecl.nname ^ "':" ^ ndecl.nname ^ "()"

@@ -180,19 +180,6 @@ let n = [{ nname="hi"; args=[]; local_vars=[VarDecl(IntType, "x", IntLiteral(1))
   *)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 (*
 a = """class hi():\n\n    def compute(self):\n        self.x = 1\n        print self.x"""
 

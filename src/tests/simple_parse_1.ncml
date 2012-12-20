@@ -1,4 +1,4 @@
-node blur () {
+node start () {
      print "666";
 }
 
