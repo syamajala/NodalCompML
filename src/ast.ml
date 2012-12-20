@@ -121,7 +121,7 @@ let build_compare = function
 
 let rec string_of_stmt = function
     Block(stmts) ->
-       String.concat "" (List.map string_of_stmt stmts)
+       String.concat ", " (List.map string_of_stmt stmts)
   | Expr(expr) -> string_of_expr expr;
   | Return(expr) -> "Return(" ^ string_of_expr expr ^ ")"
   | If(e, s, Block([])) -> "If(" ^ string_of_compare (build_compare e) ^ ", [" ^ string_of_stmt s ^ "], [])"
