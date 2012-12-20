@@ -43,7 +43,8 @@ let rec str_of_expr = function
 
 let rec str_of_stmt s lvl =
   match s with
-  | Block(stmts) -> (String.concat "\n" (List.map (fun x-> str_of_stmt x (lvl+1)) stmts))
+  | Block(stmts) -> (let l = "\n"^(tab lvl) in 
+                     (String.concat l (List.map (fun x-> str_of_stmt x (lvl+1)) (List.rev(stmts)))))
   | Expr(expr) -> str_of_expr expr;
   | Return(expr) -> "return " ^ str_of_expr expr
   | If(e, s, _) -> "if (" ^ str_of_expr e ^ "):\n" ^ (tab (lvl+1)) ^ str_of_stmt s (lvl+1)
